@@ -142,3 +142,61 @@
     color: var(--color-foreground);
   }
 }
+
+/* Retro / Y2K / spooky theme tokens */
+:root {
+  --retro-bg: #050308;
+  --retro-fg: #d9d2c7;
+  --retro-muted: #6b6577;
+  --retro-accent: #ff2f6d;
+  --retro-accent-glow: rgba(255, 47, 109, 0.55);
+}
+
+.retro-title {
+  font-family: "Zen Dots", "VT323", monospace;
+}
+.retro-digit,
+.font-mono {
+  font-family: "Share Tech Mono", "VT323", ui-monospace, monospace;
+}
+
+.scanlines {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  mix-blend-mode: overlay;
+}
+.vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 40%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+@keyframes retro-flicker {
+  0%, 100% { opacity: 1; }
+  47% { opacity: 0.94; }
+  48% { opacity: 0.6; }
+  49% { opacity: 0.98; }
+}
+.glitch {
+  animation: retro-flicker 4s infinite steps(1, end);
+  text-shadow:
+    0 0 6px var(--retro-accent-glow),
+    2px 0 0 rgba(0, 255, 234, 0.35),
+    -2px 0 0 rgba(255, 47, 109, 0.35);
+}
+
+@keyframes retro-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.shake { animation: retro-shake 0.4s ease-in-out; }

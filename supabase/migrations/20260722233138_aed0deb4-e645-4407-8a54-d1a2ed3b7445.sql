@@ -1,0 +1,106 @@
+
+CREATE TYPE public.app_role AS ENUM ('admin');
+
+CREATE TABLE public.user_roles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role public.app_role NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, role)
+);
+GRANT SELECT ON public.user_roles TO authenticated;
+GRANT ALL ON public.user_roles TO service_role;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "user can read own roles" ON public.user_roles FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role public.app_role)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role)
+$$;
+
+CREATE OR REPLACE FUNCTION public.claim_first_admin()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'admin') THEN
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'admin');
+  END IF;
+  RETURN NEW;
+END;
+$$;
+CREATE TRIGGER on_auth_user_created_claim_admin
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.claim_first_admin();
+
+CREATE TABLE public.site_settings (
+  id int PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+  countdown_target_at timestamptz,
+  youtube_url text,
+  background_url text,
+  background_kind text NOT NULL DEFAULT 'image' CHECK (background_kind IN ('image','video')),
+  music_url text,
+  default_volume int NOT NULL DEFAULT 60 CHECK (default_volume BETWEEN 0 AND 100),
+  title text NOT NULL DEFAULT 'COUNTDOWN',
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.site_settings TO anon, authenticated;
+GRANT ALL ON public.site_settings TO service_role;
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anyone reads site settings" ON public.site_settings FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "admin updates settings" ON public.site_settings FOR UPDATE TO authenticated USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
+CREATE POLICY "admin inserts settings" ON public.site_settings FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(),'admin'));
+INSERT INTO public.site_settings (id) VALUES (1);
+
+CREATE TABLE public.secrets (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug text NOT NULL UNIQUE,
+  label text,
+  prompt text NOT NULL DEFAULT 'What is their secret?',
+  correct_answers text[] NOT NULL DEFAULT '{}',
+  on_correct_redirect text,
+  discovery_type text NOT NULL DEFAULT 'route' CHECK (discovery_type IN ('hotspot','key_sequence','route')),
+  key_sequence text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.secrets TO authenticated;
+GRANT ALL ON public.secrets TO service_role;
+ALTER TABLE public.secrets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin manages secrets" ON public.secrets FOR ALL TO authenticated USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
+
+CREATE VIEW public.secrets_public AS
+SELECT id, slug, label, prompt, discovery_type, key_sequence FROM public.secrets;
+ALTER VIEW public.secrets_public SET (security_invoker = false);
+GRANT SELECT ON public.secrets_public TO anon, authenticated;
+
+CREATE TABLE public.hotspots (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  secret_id uuid NOT NULL REFERENCES public.secrets(id) ON DELETE CASCADE,
+  x_pct numeric NOT NULL,
+  y_pct numeric NOT NULL,
+  width_pct numeric NOT NULL DEFAULT 5,
+  height_pct numeric NOT NULL DEFAULT 5,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.hotspots TO anon, authenticated;
+GRANT ALL ON public.hotspots TO service_role;
+ALTER TABLE public.hotspots ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anyone reads hotspots" ON public.hotspots FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "admin manages hotspots" ON public.hotspots FOR ALL TO authenticated USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
+
+CREATE TABLE public.secret_submissions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  secret_slug text NOT NULL,
+  guess text NOT NULL,
+  is_correct boolean NOT NULL DEFAULT false,
+  user_agent text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+GRANT SELECT ON public.secret_submissions TO authenticated;
+GRANT ALL ON public.secret_submissions TO service_role;
+ALTER TABLE public.secret_submissions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "admin reads submissions" ON public.secret_submissions FOR SELECT TO authenticated USING (public.has_role(auth.uid(),'admin'));
+
+-- Storage: private media bucket, admin-only writes, anon read via signed URLs generated by admin.
+CREATE POLICY "admin uploads media" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'media' AND public.has_role(auth.uid(),'admin'));
+CREATE POLICY "admin updates media" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'media' AND public.has_role(auth.uid(),'admin'));
+CREATE POLICY "admin deletes media" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'media' AND public.has_role(auth.uid(),'admin'));
+CREATE POLICY "admin reads media" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'media' AND public.has_role(auth.uid(),'admin'));
