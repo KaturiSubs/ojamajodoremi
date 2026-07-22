@@ -50,13 +50,6 @@ export type Database = {
             referencedRelation: "secrets"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "hotspots_secret_id_fkey"
-            columns: ["secret_id"]
-            isOneToOne: false
-            referencedRelation: "secrets_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       secret_submissions: {
@@ -181,33 +174,7 @@ export type Database = {
       }
     }
     Views: {
-      secrets_public: {
-        Row: {
-          discovery_type: string | null
-          id: string | null
-          key_sequence: string | null
-          label: string | null
-          prompt: string | null
-          slug: string | null
-        }
-        Insert: {
-          discovery_type?: string | null
-          id?: string | null
-          key_sequence?: string | null
-          label?: string | null
-          prompt?: string | null
-          slug?: string | null
-        }
-        Update: {
-          discovery_type?: string | null
-          id?: string | null
-          key_sequence?: string | null
-          label?: string | null
-          prompt?: string | null
-          slug?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       has_role: {
