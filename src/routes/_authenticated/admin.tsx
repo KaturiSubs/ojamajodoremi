@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsAdmin } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import {
+  adminListSecrets,
+  adminCreateSecret,
+  adminUpdateSecret,
+  adminDeleteSecret,
+} from "@/lib/admin-secrets.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -261,22 +268,28 @@ function MediaTab() {
 
 function SecretsTab() {
   const [items, setItems] = useState<Secret[]>([]);
-  const load = useCallback(() => {
-    supabase.from("secrets").select("*").order("created_at").then(({ data }) => setItems(data ?? []));
-  }, []);
+  const list = useServerFn(adminListSecrets);
+  const create = useServerFn(adminCreateSecret);
+
+  const load = useCallback(async () => {
+    try {
+      const rows = await list();
+      setItems(rows as Secret[]);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to load secrets");
+    }
+  }, [list]);
   useEffect(() => { load(); }, [load]);
 
   async function add() {
     const slug = prompt("Slug (e.g. cassette-001):")?.trim();
     if (!slug) return;
-    const { error } = await supabase.from("secrets").insert({
-      slug,
-      prompt: "What is their secret?",
-      correct_answers: [],
-      discovery_type: "hidden_route",
-    });
-    if (error) toast.error(error.message);
-    else load();
+    try {
+      await create({ data: { slug } });
+      load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to create");
+    }
   }
 
   return (
@@ -292,27 +305,36 @@ function SecretsTab() {
 function SecretRow({ secret, onChange }: { secret: Secret; onChange: () => void }) {
   const [s, setS] = useState<Secret>(secret);
   const set = <K extends keyof Secret>(k: K, v: Secret[K]) => setS((p) => ({ ...p, [k]: v }));
+  const update = useServerFn(adminUpdateSecret);
+  const remove = useServerFn(adminDeleteSecret);
 
   async function save() {
-    const { error } = await supabase
-      .from("secrets")
-      .update({
-        slug: s.slug,
-        prompt: s.prompt,
-        correct_answers: s.correct_answers,
-        discovery_type: s.discovery_type,
-        key_sequence: s.key_sequence,
-        on_correct_redirect: s.on_correct_redirect,
-      })
-      .eq("id", s.id);
-    if (error) toast.error(error.message);
-    else toast.success("Saved");
+    try {
+      await update({
+        data: {
+          id: s.id,
+          slug: s.slug,
+          prompt: s.prompt,
+          correct_answers: Array.isArray(s.correct_answers) ? s.correct_answers : [],
+          discovery_type: s.discovery_type,
+          key_sequence: s.key_sequence,
+          on_correct_redirect: s.on_correct_redirect,
+        },
+      });
+      toast.success("Saved");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Save failed");
+    }
   }
 
   async function del() {
     if (!confirm("Delete this secret?")) return;
-    await supabase.from("secrets").delete().eq("id", s.id);
-    onChange();
+    try {
+      await remove({ data: { id: s.id } });
+      onChange();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Delete failed");
+    }
   }
 
   const answers = Array.isArray(s.correct_answers) ? s.correct_answers.join("\n") : "";
