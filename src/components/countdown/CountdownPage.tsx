@@ -84,6 +84,8 @@ export function CountdownPage() {
 
         <TypedSecret />
       </main>
+
+      <Splash />
     </div>
   );
 }
