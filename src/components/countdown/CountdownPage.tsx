@@ -77,7 +77,7 @@ export function CountdownPage() {
         ) : target ? (
           <CountdownDigits target={target} now={now} />
         ) : (
-          <h1 className="soon-title font-sans text-[18vw] font-extralight leading-none tracking-[0.15em] text-white drop-shadow-[0_0_40px_rgba(255,255,255,0.55)] sm:text-[12rem]">
+          <h1 className="soon-title font-sans text-[18vw] font-black leading-none tracking-[0.15em] text-[#E9E4FF] drop-shadow-[0_0_40px_rgba(210,200,255,0.65)] sm:text-[12rem]">
             SOON.
           </h1>
         )}
