@@ -1,59 +1,58 @@
 import { useEffect, useRef } from "react";
 
 export function BackgroundLayer({ url, kind }: { url: string | null; kind: string }) {
-  const aRef = useRef<HTMLVideoElement | null>(null);
-  const bRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Gapless video loop: two overlapping <video> elements, swap visibility just
-  // before one ends so playback never pauses on the loop boundary.
+  // Single looping <video>. Uses native `loop` so only one decoder pipeline is
+  // alive at a time (half the memory of a double-buffered setup) and adds
+  // lightweight recovery for stalled/errored playback so the BG can't freeze.
   useEffect(() => {
     if (kind !== "video" || !url) return;
-    const a = aRef.current;
-    const b = bRef.current;
-    if (!a || !b) return;
+    const v = videoRef.current;
+    if (!v) return;
 
-    let active: HTMLVideoElement = a;
-    let standby: HTMLVideoElement = b;
-    active.style.opacity = "1";
-    standby.style.opacity = "0";
-    active.currentTime = 0;
-    standby.currentTime = 0;
-    active.play().catch(() => {});
+    let disposed = false;
+    let recoverTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const onTime = () => {
-      const d = active.duration;
-      if (!Number.isFinite(d) || d <= 0) return;
-      if (d - active.currentTime <= 0.25 && standby.paused) {
-        standby.currentTime = 0;
-        standby.play().catch(() => {});
-      }
+    const tryPlay = () => {
+      v.play().catch(() => {});
     };
-    const onEnded = () => {
-      standby.style.opacity = "1";
-      active.style.opacity = "0";
-      active.pause();
-      active.currentTime = 0;
-      const tmp = active;
-      active = standby;
-      standby = tmp;
-      // rebind listeners to the new active element
-      bindActive();
+
+    const recover = () => {
+      if (disposed) return;
+      if (recoverTimer) return;
+      recoverTimer = setTimeout(() => {
+        recoverTimer = null;
+        if (disposed) return;
+        try {
+          const t = v.currentTime;
+          v.load();
+          v.currentTime = Number.isFinite(t) ? t : 0;
+          tryPlay();
+        } catch {
+          /* ignore */
+        }
+      }, 400);
     };
-    const bindActive = () => {
-      a.removeEventListener("timeupdate", onTime);
-      b.removeEventListener("timeupdate", onTime);
-      a.removeEventListener("ended", onEnded);
-      b.removeEventListener("ended", onEnded);
-      active.addEventListener("timeupdate", onTime);
-      active.addEventListener("ended", onEnded);
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") tryPlay();
+      else v.pause();
     };
-    bindActive();
+
+    v.addEventListener("stalled", recover);
+    v.addEventListener("error", recover);
+    v.addEventListener("suspend", recover);
+    document.addEventListener("visibilitychange", onVisibility);
+    tryPlay();
 
     return () => {
-      a.removeEventListener("timeupdate", onTime);
-      b.removeEventListener("timeupdate", onTime);
-      a.removeEventListener("ended", onEnded);
-      b.removeEventListener("ended", onEnded);
+      disposed = true;
+      if (recoverTimer) clearTimeout(recoverTimer);
+      v.removeEventListener("stalled", recover);
+      v.removeEventListener("error", recover);
+      v.removeEventListener("suspend", recover);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [url, kind]);
 
@@ -73,20 +72,15 @@ export function BackgroundLayer({ url, kind }: { url: string | null; kind: strin
     return (
       <div className="absolute inset-0 z-0">
         <video
-          ref={aRef}
+          ref={videoRef}
           autoPlay
           muted
           playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-75"
-          src={url}
-        />
-        <video
-          ref={bRef}
-          muted
-          playsInline
-          preload="auto"
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-75"
+          loop
+          preload="metadata"
+          disablePictureInPicture
+          disableRemotePlayback
+          className="absolute inset-0 h-full w-full object-cover"
           src={url}
         />
       </div>
