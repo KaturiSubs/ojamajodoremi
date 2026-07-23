@@ -8,6 +8,7 @@ import { HotspotLayer } from "./HotspotLayer";
 import { KonamiLayer } from "./KonamiLayer";
 import { YouTubeEmbed } from "./YouTubeEmbed";
 import { TypedSecret } from "./TypedSecret";
+import { Splash } from "./Splash";
 
 export function CountdownPage() {
   const { settings, loading } = useSiteSettings();
@@ -83,6 +84,8 @@ export function CountdownPage() {
 
         <TypedSecret />
       </main>
+
+      <Splash />
     </div>
   );
 }
