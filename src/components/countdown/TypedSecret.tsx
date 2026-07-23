@@ -73,7 +73,7 @@ export function TypedSecret() {
       className="mt-6 flex w-full max-w-md flex-col items-center gap-3"
     >
       <p className="font-sans text-sm font-light uppercase tracking-[0.35em] text-white/90 drop-shadow-[0_0_10px_rgba(255,255,255,0.6)]">
-        What is their secret?
+        INPUT.
       </p>
       <Input
         ref={inputRef}
