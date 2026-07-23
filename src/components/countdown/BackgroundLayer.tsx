@@ -4,8 +4,8 @@ export function BackgroundLayer({ url, kind }: { url: string | null; kind: strin
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Single looping <video>. Uses native `loop` so only one decoder pipeline is
-  // alive at a time (half the memory of a double-buffered setup) and adds
-  // lightweight recovery for stalled/errored playback so the BG can't freeze.
+  // alive at a time. Only recovers on real errors — `stalled`/`suspend` fire
+  // during normal buffering and reloading on them causes flicker.
   useEffect(() => {
     if (kind !== "video" || !url) return;
     const v = videoRef.current;
@@ -19,20 +19,17 @@ export function BackgroundLayer({ url, kind }: { url: string | null; kind: strin
     };
 
     const recover = () => {
-      if (disposed) return;
-      if (recoverTimer) return;
+      if (disposed || recoverTimer) return;
       recoverTimer = setTimeout(() => {
         recoverTimer = null;
         if (disposed) return;
         try {
-          const t = v.currentTime;
           v.load();
-          v.currentTime = Number.isFinite(t) ? t : 0;
           tryPlay();
         } catch {
           /* ignore */
         }
-      }, 400);
+      }, 800);
     };
 
     const onVisibility = () => {
@@ -40,21 +37,18 @@ export function BackgroundLayer({ url, kind }: { url: string | null; kind: strin
       else v.pause();
     };
 
-    v.addEventListener("stalled", recover);
     v.addEventListener("error", recover);
-    v.addEventListener("suspend", recover);
     document.addEventListener("visibilitychange", onVisibility);
     tryPlay();
 
     return () => {
       disposed = true;
       if (recoverTimer) clearTimeout(recoverTimer);
-      v.removeEventListener("stalled", recover);
       v.removeEventListener("error", recover);
-      v.removeEventListener("suspend", recover);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [url, kind]);
+
 
   if (!url) {
     return (
