@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import bgmAsset from "@/assets/another_witch.mp3.asset.json";
+import bgmAsset from "@/assets/another_witch.wav.asset.json";
 
 const STORAGE_KEY = "countdown_volume";
 
