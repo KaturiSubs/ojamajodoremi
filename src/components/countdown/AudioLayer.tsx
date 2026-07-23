@@ -50,19 +50,6 @@ export function AudioLayer({
     gain.connect(ctx.destination);
     gainRef.current = gain;
 
-    (async () => {
-      try {
-        const res = await fetch(src);
-        const arr = await res.arrayBuffer();
-        const buf = await ctx.decodeAudioData(arr);
-        if (cancelled) return;
-        bufferRef.current = buf;
-        tryStart();
-      } catch {
-        /* ignore */
-      }
-    })();
-
     const tryStart = () => {
       if (startedRef.current) return;
       if (!ctxRef.current || !bufferRef.current || !gainRef.current) return;
@@ -78,6 +65,19 @@ export function AudioLayer({
         /* ignore */
       }
     };
+
+    (async () => {
+      try {
+        const res = await fetch(src);
+        const arr = await res.arrayBuffer();
+        const buf = await ctx.decodeAudioData(arr);
+        if (cancelled) return;
+        bufferRef.current = buf;
+        tryStart();
+      } catch {
+        /* ignore */
+      }
+    })();
 
     const unlock = () => {
       ctx.resume().catch(() => {});
