@@ -4,38 +4,29 @@ import { checkSecret } from "@/lib/secrets.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const TRIGGERS = ["theory", "fairy", "rebellion"];
-const BUFFER_MAX = 12;
-
 export function TypedSecret() {
   const [revealed, setRevealed] = useState(false);
   const [guess, setGuess] = useState("");
   const [wrong, setWrong] = useState(false);
   const [busy, setBusy] = useState(false);
-  const bufRef = useRef("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const check = useServerFn(checkSecret);
 
-  // Detect trigger words typed anywhere on the page
+  // Reveal the textbox on any click anywhere on the page
   useEffect(() => {
     if (revealed) return;
-    const onKey = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
-      if (e.key.length !== 1) return;
-      bufRef.current = (bufRef.current + e.key.toLowerCase()).slice(-BUFFER_MAX);
-      if (TRIGGERS.some((w) => bufRef.current.endsWith(w))) {
-        setRevealed(true);
-        bufRef.current = "";
-      }
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      // Ignore clicks on interactive elements (splash button, hotspots, inputs, links, etc.)
+      if (target?.closest("button, a, input, textarea, [role='button']")) return;
+      setRevealed(true);
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("click", onClick);
+    return () => window.removeEventListener("click", onClick);
   }, [revealed]);
 
   useEffect(() => {
     if (revealed) {
-      // slight delay so the input mounts before focus
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [revealed]);
