@@ -7,6 +7,7 @@ import { CountdownDigits } from "./CountdownDigits";
 import { HotspotLayer } from "./HotspotLayer";
 import { KonamiLayer } from "./KonamiLayer";
 import { YouTubeEmbed } from "./YouTubeEmbed";
+import { TypedSecret } from "./TypedSecret";
 
 export function CountdownPage() {
   const { settings, loading } = useSiteSettings();
@@ -59,9 +60,9 @@ export function CountdownPage() {
   const finished = useMemo(() => (target ? now >= target : false), [target, now]);
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[color:var(--retro-bg)] text-[color:var(--retro-fg)]">
+    <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
       <BackgroundLayer url={settings?.background_url ?? null} kind={settings?.background_kind ?? "image"} />
-      <div className="scanlines pointer-events-none absolute inset-0 z-10" />
+      <div className="scanlines pointer-events-none absolute inset-0 z-10 opacity-40" />
       <div className="vignette pointer-events-none absolute inset-0 z-10" />
 
       <HotspotLayer hotspots={hotspots} />
@@ -69,29 +70,18 @@ export function CountdownPage() {
 
       <AudioLayer url={settings?.music_url ?? null} defaultVolume={settings?.default_volume ?? 60} />
 
-      <main className="relative z-20 flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-16">
-        <h1 className="retro-title text-center text-3xl uppercase tracking-[0.4em] text-[color:var(--retro-accent)] drop-shadow-[0_0_18px_var(--retro-accent-glow)] sm:text-5xl">
-          {settings?.title ?? "COUNTDOWN"}
-        </h1>
-        <p className="font-mono text-xs uppercase tracking-[0.5em] text-[color:var(--retro-muted)]">
-          待って ・ transmission incoming
-        </p>
-
-        {loading ? (
-          <div className="font-mono text-[color:var(--retro-muted)]">::: loading :::</div>
-        ) : finished && settings?.youtube_url ? (
+      <main className="relative z-20 flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-16">
+        {loading ? null : finished && settings?.youtube_url ? (
           <YouTubeEmbed url={settings.youtube_url} />
         ) : target ? (
           <CountdownDigits target={target} now={now} />
         ) : (
-          <div className="font-mono text-sm text-[color:var(--retro-muted)]">
-            [ target date not yet set ]
-          </div>
+          <h1 className="soon-title font-sans text-[18vw] font-extralight leading-none tracking-[0.15em] text-white drop-shadow-[0_0_40px_rgba(255,255,255,0.55)] sm:text-[12rem]">
+            SOON.
+          </h1>
         )}
 
-        <div className="font-mono text-[10px] uppercase tracking-widest text-[color:var(--retro-muted)] opacity-60">
-          {/* hidden clue */}↑ ↓ // adjust volume &nbsp;·&nbsp; nothing is what it seems
-        </div>
+        <TypedSecret />
       </main>
     </div>
   );

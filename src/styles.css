@@ -153,11 +153,21 @@
 }
 
 .retro-title {
-  font-family: "Zen Dots", "VT323", monospace;
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-weight: 200;
+  letter-spacing: 0.15em;
 }
 .retro-digit,
 .font-mono {
   font-family: "Share Tech Mono", "VT323", ui-monospace, monospace;
+}
+.soon-title {
+  font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  animation: soon-pulse 4s ease-in-out infinite;
+}
+@keyframes soon-pulse {
+  0%, 100% { text-shadow: 0 0 40px rgba(255,255,255,0.55), 0 0 80px rgba(255,255,255,0.25); }
+  50% { text-shadow: 0 0 60px rgba(255,255,255,0.85), 0 0 120px rgba(255,255,255,0.35); }
 }
 
 .scanlines {

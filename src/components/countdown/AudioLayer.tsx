@@ -1,9 +1,27 @@
 import { useEffect, useRef, useState } from "react";
+import bgmAsset from "@/assets/another_witch.mp3.asset.json";
 
 const STORAGE_KEY = "countdown_volume";
 
-export function AudioLayer({ url, defaultVolume }: { url: string | null; defaultVolume: number }) {
-  const ref = useRef<HTMLAudioElement | null>(null);
+/**
+ * Gapless BGM using the Web Audio API (AudioBufferSourceNode.loop = true).
+ * Falls back to the uploaded ANOTHER_WITCH.mp3 asset if no admin URL is set.
+ */
+export function AudioLayer({
+  url,
+  defaultVolume,
+}: {
+  url: string | null;
+  defaultVolume: number;
+}) {
+  const src = url && url.length > 0 ? url : bgmAsset.url;
+
+  const ctxRef = useRef<AudioContext | null>(null);
+  const gainRef = useRef<GainNode | null>(null);
+  const sourceRef = useRef<AudioBufferSourceNode | null>(null);
+  const bufferRef = useRef<AudioBuffer | null>(null);
+  const startedRef = useRef(false);
+
   const [volume, setVolume] = useState(() => {
     if (typeof window === "undefined") return defaultVolume / 100;
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -13,41 +31,97 @@ export function AudioLayer({ url, defaultVolume }: { url: string | null; default
     }
     return Math.max(0, Math.min(1, defaultVolume / 100));
   });
-  const [unlocked, setUnlocked] = useState(false);
+
+  // Load + decode the audio buffer
+  useEffect(() => {
+    if (!src) return;
+    let cancelled = false;
+
+    const AC: typeof AudioContext =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    if (!AC) return;
+
+    const ctx = new AC();
+    ctxRef.current = ctx;
+    const gain = ctx.createGain();
+    gain.gain.value = volume;
+    gain.connect(ctx.destination);
+    gainRef.current = gain;
+
+    const tryStart = () => {
+      if (startedRef.current) return;
+      if (!ctxRef.current || !bufferRef.current || !gainRef.current) return;
+      const source = ctxRef.current.createBufferSource();
+      source.buffer = bufferRef.current;
+      source.loop = true;
+      source.connect(gainRef.current);
+      try {
+        source.start(0);
+        sourceRef.current = source;
+        startedRef.current = true;
+      } catch {
+        /* ignore */
+      }
+    };
+
+    (async () => {
+      try {
+        const res = await fetch(src);
+        const arr = await res.arrayBuffer();
+        const buf = await ctx.decodeAudioData(arr);
+        if (cancelled) return;
+        bufferRef.current = buf;
+        tryStart();
+      } catch {
+        /* ignore */
+      }
+    })();
+
+    const unlock = () => {
+      ctx.resume().catch(() => {});
+      tryStart();
+    };
+    // Try immediately; if autoplay is blocked, first gesture will unlock.
+    ctx.resume().catch(() => {});
+    tryStart();
+
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+      try {
+        sourceRef.current?.stop();
+      } catch {
+        /* ignore */
+      }
+      sourceRef.current?.disconnect();
+      gainRef.current?.disconnect();
+      ctx.close().catch(() => {});
+      ctxRef.current = null;
+      gainRef.current = null;
+      sourceRef.current = null;
+      bufferRef.current = null;
+      startedRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
 
   // Apply volume
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.volume = volume;
-    window.localStorage.setItem(STORAGE_KEY, String(volume));
+    if (gainRef.current) gainRef.current.gain.value = volume;
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, String(volume));
+    }
   }, [volume]);
-
-  // Try autoplay muted; unmute on first user gesture
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !url) return;
-    el.muted = true;
-    el.play().catch(() => {});
-    const unlock = () => {
-      if (unlocked) return;
-      el.muted = false;
-      el.volume = volume;
-      el.play().catch(() => {});
-      setUnlocked(true);
-    };
-    window.addEventListener("pointerdown", unlock, { once: true });
-    window.addEventListener("keydown", unlock, { once: true });
-    return () => {
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
-    };
-  }, [url, unlocked, volume]);
 
   // Volume via arrow keys
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // Ignore when typing in inputs
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       if (e.key === "ArrowUp") {
@@ -62,6 +136,5 @@ export function AudioLayer({ url, defaultVolume }: { url: string | null; default
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  if (!url) return null;
-  return <audio ref={ref} src={url} loop preload="auto" />;
+  return null;
 }
