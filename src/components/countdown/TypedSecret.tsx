@@ -39,7 +39,6 @@ export function TypedSecret() {
     try {
       const res = await check({
         data: {
-          slug: "witch",
           guess,
           userAgent:
             typeof navigator !== "undefined"
