@@ -346,10 +346,11 @@ function SecretRow({ secret, onChange }: { secret: Secret; onChange: () => void 
         <Label>Discovery type</Label>
         <select
           className="h-10 w-full rounded-md border bg-transparent px-3"
-          value={s.discovery_type ?? "hidden_route"}
+          value={s.discovery_type ?? "route"}
           onChange={(e) => set("discovery_type", e.target.value)}
         >
-          <option value="hidden_route">hidden_route</option>
+          <option value="route">route</option>
+          <option value="typed_word">typed_word</option>
           <option value="hotspot">hotspot</option>
           <option value="key_sequence">key_sequence</option>
         </select>

@@ -40,10 +40,10 @@ export const adminCreateSecret = createServerFn({ method: "POST" })
         slug: data.slug,
         prompt: "What is their secret?",
         correct_answers: [],
-        discovery_type: "hidden_route",
+        discovery_type: "route",
       })
       .select()
-      .single();
+      .maybeSingle();
     if (error) throw new Error(error.message);
     return row;
   });

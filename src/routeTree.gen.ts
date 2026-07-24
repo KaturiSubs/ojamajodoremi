@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SecretSlugRouteImport } from './routes/secret.$slug'
+import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const AuthRoute = AuthRouteImport.update({
@@ -34,6 +35,11 @@ const SecretSlugRoute = SecretSlugRouteImport.update({
   path: '/secret/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RevealSlugRoute = RevealSlugRouteImport.update({
+  id: '/reveal/$slug',
+  path: '/reveal/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -44,12 +50,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
 export interface FileRoutesById {
@@ -58,19 +66,21 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/admin' | '/secret/$slug'
+  fullPaths: '/' | '/auth' | '/admin' | '/reveal/$slug' | '/secret/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/secret/$slug'
+  to: '/' | '/auth' | '/admin' | '/reveal/$slug' | '/secret/$slug'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
+    | '/reveal/$slug'
     | '/secret/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -78,6 +88,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  RevealSlugRoute: typeof RevealSlugRoute
   SecretSlugRoute: typeof SecretSlugRoute
 }
 
@@ -111,6 +122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SecretSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reveal/$slug': {
+      id: '/reveal/$slug'
+      path: '/reveal/$slug'
+      fullPath: '/reveal/$slug'
+      preLoaderRoute: typeof RevealSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -136,6 +154,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  RevealSlugRoute: RevealSlugRoute,
   SecretSlugRoute: SecretSlugRoute,
 }
 export const routeTree = rootRouteImport
