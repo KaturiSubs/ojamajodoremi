@@ -71,7 +71,7 @@ export function BackgroundLayer({ url, kind }: { url: string | null; kind: strin
           muted
           playsInline
           loop
-          preload="auto"
+          preload="metadata"
           disablePictureInPicture
           disableRemotePlayback
           className="absolute inset-0 h-full w-full object-cover"
