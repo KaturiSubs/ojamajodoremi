@@ -3,7 +3,7 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { BackgroundLayer } from "./BackgroundLayer";
 import { AudioLayer } from "./AudioLayer";
-import { CountdownDigits } from "./CountdownDigits";
+import { CyclingCountdown } from "./CyclingCountdown";
 import { HotspotLayer } from "./HotspotLayer";
 import { KonamiLayer } from "./KonamiLayer";
 import { YouTubeEmbed } from "./YouTubeEmbed";
@@ -74,12 +74,8 @@ export function CountdownPage() {
       <main className="relative z-20 flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-16">
         {loading ? null : finished && settings?.youtube_url ? (
           <YouTubeEmbed url={settings.youtube_url} />
-        ) : target ? (
-          <CountdownDigits target={target} now={now} />
         ) : (
-          <h1 className="soon-title font-sans text-[18vw] font-black leading-none tracking-[0.15em] text-[#E9E4FF] drop-shadow-[0_0_40px_rgba(210,200,255,0.65)] sm:text-[12rem]">
-            SOON.
-          </h1>
+          <CyclingCountdown />
         )}
 
         <TypedSecret />
