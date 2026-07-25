@@ -7,19 +7,52 @@ const inputSchema = z.object({
   userAgent: z.string().max(500).optional(),
 });
 
+const FORBIDDEN = new Set(
+  [
+    "loli",
+    "lolicon",
+    "doremi-fansubs",
+    "fansubs",
+    "pedo",
+    "pedophile",
+    "sex",
+    "r34",
+    "rule34",
+    "hentai",
+    "shota",
+    "shotacon",
+    "weird route",
+    "weird",
+    "thorn",
+    "thorn ring",
+  ].map((s) => s.trim().toLowerCase()),
+);
+
 export const checkSecret = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
 
     const normalized = data.guess.trim().toLowerCase();
+
+    // Forbidden phrases: log as incorrect + return "forbidden" so client plays
+    // the hell-super sound. No redirect.
+    if (FORBIDDEN.has(normalized)) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "forbidden",
+        guess: data.guess,
+        is_correct: false,
+        user_agent: data.userAgent ?? null,
+      });
+      return { correct: false as const, forbidden: true as const };
+    }
 
     let query = supabaseAdmin
       .from("secrets")
       .select("id, slug, correct_answers, on_correct_redirect");
-    if (data.slug) {
-      query = query.eq("slug", data.slug);
-    }
+    if (data.slug) query = query.eq("slug", data.slug);
 
     const { data: secrets, error } = await query;
     if (error) throw new Error("Lookup failed");
@@ -40,6 +73,10 @@ export const checkSecret = createServerFn({ method: "POST" })
     });
 
     return correct
-      ? { correct: true as const, redirect: match.on_correct_redirect ?? null }
-      : { correct: false as const };
+      ? {
+          correct: true as const,
+          redirect: match.on_correct_redirect ?? null,
+          forbidden: false as const,
+        }
+      : { correct: false as const, forbidden: false as const };
   });
