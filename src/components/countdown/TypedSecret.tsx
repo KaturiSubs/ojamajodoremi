@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { checkSecret } from "@/lib/secrets.functions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { SFX } from "@/lib/asset-urls";
 
 export function TypedSecret() {
   const [revealed, setRevealed] = useState(false);
@@ -10,15 +11,15 @@ export function TypedSecret() {
   const [wrong, setWrong] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const sfxRef = useRef<HTMLAudioElement | null>(null);
   const check = useServerFn(checkSecret);
 
-  // Reveal the textbox on any click anywhere on the page
   useEffect(() => {
     if (revealed) return;
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
-      // Ignore clicks on interactive elements (splash button, hotspots, inputs, links, etc.)
-      if (target?.closest("button, a, input, textarea, [role='button']")) return;
+      if (target?.closest("button, a, input, textarea, [role='button']"))
+        return;
       setRevealed(true);
     };
     window.addEventListener("click", onClick);
@@ -26,10 +27,21 @@ export function TypedSecret() {
   }, [revealed]);
 
   useEffect(() => {
-    if (revealed) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
+    if (revealed) setTimeout(() => inputRef.current?.focus(), 50);
   }, [revealed]);
+
+  function playSfx(url: string, volume = 0.7) {
+    try {
+      sfxRef.current?.pause();
+    } catch {
+      /* ignore */
+    }
+    const a = new Audio(url);
+    a.volume = volume;
+    sfxRef.current = a;
+    a.play().catch(() => {});
+    return a;
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,15 +59,24 @@ export function TypedSecret() {
         },
       });
       if (res.correct) {
+        playSfx(SFX.ominousCorrect, 0.7);
         const dest = res.redirect;
-        if (dest && /^https?:\/\//i.test(dest)) {
-          window.location.href = dest;
-        } else if (dest && dest.startsWith("/")) {
-          window.location.href = dest;
-        } else {
-          window.location.href = "/secret/witch";
-        }
+        setTimeout(() => {
+          try {
+            sfxRef.current?.pause();
+          } catch {
+            /* ignore */
+          }
+          if (dest && /^https?:\/\//i.test(dest)) window.location.href = dest;
+          else if (dest && dest.startsWith("/")) window.location.href = dest;
+          else window.location.href = "/";
+        }, 900);
+      } else if (res.forbidden) {
+        playSfx(SFX.ominousForbidden, 0.7);
+        setWrong(true);
+        setTimeout(() => setWrong(false), 900);
       } else {
+        playSfx(SFX.ominousWrong, 0.7);
         setWrong(true);
         setTimeout(() => setWrong(false), 900);
       }
