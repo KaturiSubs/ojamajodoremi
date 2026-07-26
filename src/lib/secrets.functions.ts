@@ -28,6 +28,23 @@ const FORBIDDEN = new Set(
   ].map((s) => s.trim().toLowerCase()),
 );
 
+const WATER = new Set(
+  [
+    "majo pi",
+    "majo pon",
+    "pi",
+    "pon",
+    "water",
+    "kindergarten",
+    "exam",
+    "hydrate",
+    "hydration",
+    "liquid",
+    "drink",
+    "drink water",
+  ].map((s) => s.trim().toLowerCase()),
+);
+
 export const checkSecret = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
@@ -37,16 +54,35 @@ export const checkSecret = createServerFn({ method: "POST" })
 
     const normalized = data.guess.trim().toLowerCase();
 
-    // Forbidden phrases: log as incorrect + return "forbidden" so client plays
-    // the hell-super sound. No redirect.
+    // Ominous phrases: log + return "ominous" so client plays the hell-super
+    // sound AND triggers the white-fade / spam escalation on the countdown.
     if (FORBIDDEN.has(normalized)) {
       await supabaseAdmin.from("secret_submissions").insert({
-        secret_slug: "forbidden",
+        secret_slug: "ominous",
         guess: data.guess,
         is_correct: false,
         user_agent: data.userAgent ?? null,
       });
-      return { correct: false as const, forbidden: true as const };
+      return {
+        correct: false as const,
+        forbidden: true as const,
+        ominous: true as const,
+      };
+    }
+
+    // Water secret: hard-coded correct phrases redirect to /reveal/water.
+    if (WATER.has(normalized)) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "water",
+        guess: data.guess,
+        is_correct: true,
+        user_agent: data.userAgent ?? null,
+      });
+      return {
+        correct: true as const,
+        redirect: "/reveal/water",
+        forbidden: false as const,
+      };
     }
 
     let query = supabaseAdmin
