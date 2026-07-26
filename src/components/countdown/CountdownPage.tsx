@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { BackgroundLayer } from "./BackgroundLayer";
@@ -16,11 +17,54 @@ export function CountdownPage() {
     Array<{ id: string; x_pct: number; y_pct: number; width_pct: number; height_pct: number; slug: string }>
   >([]);
   const [keySecrets, setKeySecrets] = useState<Array<{ slug: string; key_sequence: string }>>([]);
+  const [whiteOpacity, setWhiteOpacity] = useState(0);
+  const hitsRef = useRef<number[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(t);
   }, []);
+
+  // Ominous spam escalation: whiten screen with each hit within 5s window,
+  // decay when idle, redirect to /chapters at 12 hits.
+  useEffect(() => {
+    const WINDOW_MS = 5000;
+    const THRESHOLD = 12;
+
+    const onHit = () => {
+      const now = Date.now();
+      hitsRef.current = hitsRef.current.filter((t) => now - t < WINDOW_MS);
+      hitsRef.current.push(now);
+      const count = hitsRef.current.length;
+      setWhiteOpacity(Math.min(1, count / THRESHOLD));
+      if (count >= THRESHOLD) {
+        setWhiteOpacity(1);
+        setTimeout(() => {
+          navigate({ to: "/chapters", search: { fromwhite: 1 } as any });
+        }, 500);
+      }
+    };
+    window.addEventListener("ominous-hit", onHit);
+
+    // Decay every 250ms based on age of hits
+    const decay = setInterval(() => {
+      const now = Date.now();
+      hitsRef.current = hitsRef.current.filter((t) => now - t < WINDOW_MS);
+      const count = hitsRef.current.length;
+      setWhiteOpacity((prev) => {
+        const target = Math.min(1, count / THRESHOLD);
+        // ease down toward target
+        if (prev <= target) return prev;
+        return Math.max(target, prev - 0.05);
+      });
+    }, 250);
+
+    return () => {
+      window.removeEventListener("ominous-hit", onHit);
+      clearInterval(decay);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     supabase
@@ -79,6 +123,12 @@ export function CountdownPage() {
 
         <TypedSecret />
       </main>
+
+      {/* Ominous white-flash overlay */}
+      <div
+        className="pointer-events-none fixed inset-0 z-50 bg-white transition-opacity duration-300"
+        style={{ opacity: whiteOpacity }}
+      />
     </div>
   );
 }
