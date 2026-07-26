@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ChaptersRouteImport } from './routes/chapters'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -16,6 +17,11 @@ import { Route as SecretSlugRouteImport } from './routes/secret.$slug'
 import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
+const ChaptersRoute = ChaptersRouteImport.update({
+  id: '/chapters',
+  path: '/chapters',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -49,6 +55,7 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chapters': typeof ChaptersRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
@@ -56,6 +63,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chapters': typeof ChaptersRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
@@ -65,20 +73,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/chapters': typeof ChaptersRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/admin' | '/reveal/$slug' | '/secret/$slug'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/chapters'
+    | '/admin'
+    | '/reveal/$slug'
+    | '/secret/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/reveal/$slug' | '/secret/$slug'
+  to: '/' | '/auth' | '/chapters' | '/admin' | '/reveal/$slug' | '/secret/$slug'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/chapters'
     | '/_authenticated/admin'
     | '/reveal/$slug'
     | '/secret/$slug'
@@ -88,12 +104,20 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ChaptersRoute: typeof ChaptersRoute
   RevealSlugRoute: typeof RevealSlugRoute
   SecretSlugRoute: typeof SecretSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/chapters': {
+      id: '/chapters'
+      path: '/chapters'
+      fullPath: '/chapters'
+      preLoaderRoute: typeof ChaptersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -154,6 +178,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ChaptersRoute: ChaptersRoute,
   RevealSlugRoute: RevealSlugRoute,
   SecretSlugRoute: SecretSlugRoute,
 }
