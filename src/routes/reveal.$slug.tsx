@@ -336,23 +336,40 @@ function Sakura() {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(SAKURA_KEY) === "1";
   });
+  // First mount decides which BG track plays for the entire visit. Advancing
+  // through the sequence (which sets `completed=true` at the end) must NOT
+  // swap the music mid-visit — Tranquility only plays on a fresh visit
+  // (refresh, re-navigation) after completion.
+  const [bgTrack] = useState<string>(() =>
+    completed ? SFX.tranquility : SFX.sakuraGirl0,
+  );
   const [step, setStep] = useState<number | null>(null); // null = idle, number = sequence index, -1 = final
   const bgRef = useRef<HTMLAudioElement | null>(null);
   const lineRef = useRef<HTMLAudioElement | null>(null);
 
-  // Background music (Sakura Girl 0 first time, Tranquility once completed)
+  // Background music: chosen once on mount, doesn't restart on step changes.
   useEffect(() => {
-    const bg = playSecret(completed ? SFX.tranquility : SFX.sakuraGirl0, {
-      loop: true,
-      volume: 0.6,
-    });
+    const bg = playSecret(bgTrack, { loop: true, volume: 0.6 });
     bgRef.current = bg;
     return () => {
       stopSecret(bg);
       stopSecret(lineRef.current);
       stopAllSecrets();
     };
-  }, [completed]);
+  }, [bgTrack]);
+
+  // Preload upcoming GIFs + WAVs so transitions between lines are instant
+  // and the current GIF has no time to visibly loop before the next mounts.
+  useEffect(() => {
+    const all = [...SEQUENCE, FINAL];
+    for (const d of all) {
+      const img = new Image();
+      img.src = ghAsset(d.gif);
+      const a = new Audio();
+      a.preload = "auto";
+      a.src = gh(d.wav);
+    }
+  }, []);
 
   // Advance to next line (or finish)
   const advance = useCallback(() => {
@@ -385,7 +402,8 @@ function Sakura() {
     });
   }, [step, advance]);
 
-  // Keyboard skip
+  // Keyboard skip — stops current audio AND advances immediately so both
+  // the gif and its sound are seamlessly cut.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (step === null) return;
@@ -395,10 +413,12 @@ function Sakura() {
         e.key === "Enter" ||
         e.key === "c" ||
         e.key === "C" ||
-        e.key === "Control"
+        e.key === "Control" ||
+        e.key === " "
       ) {
         e.preventDefault();
         stopSecret(lineRef.current);
+        lineRef.current = null;
         advance();
       }
     };
@@ -431,6 +451,7 @@ function Sakura() {
       </div>
       {currentDialogue && (
         <div
+          key={`${step}-${currentDialogue.gif}`}
           className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2"
           style={{ width: "min(90vw, 900px)" }}
         >
@@ -442,6 +463,60 @@ function Sakura() {
           />
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Water (looping video background) ────────────────────
+function Water() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.play().catch(() => {
+      v.muted = true;
+      v.play().catch(() => {});
+    });
+    return () => stopAllSecrets();
+  }, []);
+  return (
+    <div className="fixed inset-0 bg-black">
+      <video
+        ref={videoRef}
+        src="https://ia600804.us.archive.org/29/items/drink-water-2/drink%20water%202.mp4"
+        autoPlay
+        loop
+        playsInline
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    </div>
+  );
+}
+
+// ─── Chapter openings (video, fairy-style) ───────────────
+function ChapterOpening({ n }: { n: number }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.play().catch(() => {
+      v.muted = true;
+      v.play().catch(() => {});
+    });
+  }, []);
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-black">
+      <video
+        ref={videoRef}
+        src={ghAsset(`CHAPTER ${n} OPENING.mp4`)}
+        autoPlay
+        loop
+        playsInline
+        controls
+        className="max-h-screen max-w-full"
+      />
     </div>
   );
 }
@@ -461,6 +536,9 @@ function RevealPage() {
   if (slug === "carnival") return <Carnival />;
   if (slug === "fafa") return <Fafa />;
   if (slug === "sakura") return <Sakura />;
+  if (slug === "water") return <Water />;
+  const m = /^chapter-([1-4])$/.exec(slug);
+  if (m) return <ChapterOpening n={Number(m[1])} />;
 
   return <BlackText text="…" />;
 }

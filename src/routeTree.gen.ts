@@ -9,20 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as ChaptersRouteImport } from './routes/chapters'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as SecretSlugRouteImport } from './routes/secret.$slug'
+import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ChaptersRoute = ChaptersRouteImport.update({
+  id: '/chapters',
+  path: '/chapters',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -30,14 +27,13 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const RevealSlugRoute = RevealSlugRouteImport.update({
-  id: '/reveal/$slug',
-  path: '/reveal/$slug',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SecretSlugRoute = SecretSlugRouteImport.update({
@@ -45,10 +41,21 @@ const SecretSlugRoute = SecretSlugRouteImport.update({
   path: '/secret/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RevealSlugRoute = RevealSlugRouteImport.update({
+  id: '/reveal/$slug',
+  path: '/reveal/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chapters': typeof ChaptersRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
@@ -56,6 +63,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chapters': typeof ChaptersRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
@@ -65,20 +73,28 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/chapters': typeof ChaptersRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/admin' | '/reveal/$slug' | '/secret/$slug'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/chapters'
+    | '/admin'
+    | '/reveal/$slug'
+    | '/secret/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/reveal/$slug' | '/secret/$slug'
+  to: '/' | '/auth' | '/chapters' | '/admin' | '/reveal/$slug' | '/secret/$slug'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/chapters'
     | '/_authenticated/admin'
     | '/reveal/$slug'
     | '/secret/$slug'
@@ -88,24 +104,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ChaptersRoute: typeof ChaptersRoute
   RevealSlugRoute: typeof RevealSlugRoute
   SecretSlugRoute: typeof SecretSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/chapters': {
+      id: '/chapters'
+      path: '/chapters'
+      fullPath: '/chapters'
+      preLoaderRoute: typeof ChaptersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -115,18 +125,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/reveal/$slug': {
-      id: '/reveal/$slug'
-      path: '/reveal/$slug'
-      fullPath: '/reveal/$slug'
-      preLoaderRoute: typeof RevealSlugRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/secret/$slug': {
@@ -135,6 +145,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/secret/$slug'
       preLoaderRoute: typeof SecretSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/reveal/$slug': {
+      id: '/reveal/$slug'
+      path: '/reveal/$slug'
+      fullPath: '/reveal/$slug'
+      preLoaderRoute: typeof RevealSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
@@ -154,6 +178,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ChaptersRoute: ChaptersRoute,
   RevealSlugRoute: RevealSlugRoute,
   SecretSlugRoute: SecretSlugRoute,
 }

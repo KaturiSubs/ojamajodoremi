@@ -73,6 +73,8 @@ export function TypedSecret() {
         }, 900);
       } else if (res.forbidden) {
         playSfx(SFX.ominousForbidden, 0.7);
+        // Notify countdown page to trigger white-flash / spam escalation.
+        window.dispatchEvent(new CustomEvent("ominous-hit"));
         setWrong(true);
         setTimeout(() => setWrong(false), 900);
       } else {
