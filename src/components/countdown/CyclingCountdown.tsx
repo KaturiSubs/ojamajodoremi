@@ -8,6 +8,7 @@ const makeInitial = (): DigitState[] =>
   Array.from({ length: 8 }, () => ({
     value: Math.floor(Math.random() * 10),
     manual: false,
+    adjusting: false,
   }));
 
 function Digit({
