@@ -111,22 +111,31 @@ export function CyclingCountdown({
     }, 20000);
   };
 
-  // All 8 digits = 6 -> sakura secret
+  // All 8 digits = 6 -> ominous escalation (white-out to /chapters)
   useEffect(() => {
     if (!customizable) return;
     if (digits.every((d) => d.manual && d.value === 6)) {
-      navigate({ to: "/reveal/$slug", params: { slug: "sakura" } });
+      navigate({ to: "/chapters", search: { fromwhite: 1 } as any });
     }
   }, [digits, customizable, navigate]);
 
+  const adjustClearRef = useRef<Record<number, number>>({});
   const changeDigit = (i: number, delta: number) => {
     setDigits((ds) =>
       ds.map((d, idx) =>
         idx === i
-          ? { manual: true, value: (d.value + delta + 10) % 10 }
+          ? { manual: true, adjusting: true, value: (d.value + delta + 10) % 10 }
           : d,
       ),
     );
+    // Clear the transient adjusting blur ~180ms after the last change on
+    // this digit so rapid scrolls keep the blur pinned.
+    if (adjustClearRef.current[i]) window.clearTimeout(adjustClearRef.current[i]);
+    adjustClearRef.current[i] = window.setTimeout(() => {
+      setDigits((ds) =>
+        ds.map((d, idx) => (idx === i ? { ...d, adjusting: false } : d)),
+      );
+    }, 180);
     bumpIdle();
   };
 
