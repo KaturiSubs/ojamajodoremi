@@ -114,6 +114,7 @@ function SettingsTab() {
         background_kind: s.background_kind,
         music_url: s.music_url,
         default_volume: s.default_volume,
+        ominous_phrases: s.ominous_phrases ?? [],
       })
       .eq("id", 1);
     setSaving(false);
