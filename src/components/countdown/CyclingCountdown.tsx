@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import sfxAsset from "@/assets/computer_loading.mp3.asset.json";
 
-type DigitState = { value: number; manual: boolean };
+type DigitState = { value: number; manual: boolean; adjusting?: boolean };
 
 const makeInitial = (): DigitState[] =>
   Array.from({ length: 8 }, () => ({
