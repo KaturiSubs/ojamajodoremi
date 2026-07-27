@@ -337,18 +337,14 @@ function Sakura() {
     if (typeof window === "undefined") return false;
     return window.localStorage.getItem(SAKURA_KEY) === "1";
   });
-  // First mount decides which BG track plays for the entire visit. Advancing
-  // through the sequence (which sets `completed=true` at the end) must NOT
-  // swap the music mid-visit — Tranquility only plays on a fresh visit
-  // (refresh, re-navigation) after completion.
   const [bgTrack] = useState<string>(() =>
     completed ? SFX.tranquility : SFX.sakuraGirl0,
   );
-  const [step, setStep] = useState<number | null>(null); // null = idle, number = sequence index, -1 = final
+  const [step, setStep] = useState<number | null>(null);
+  const [gifNonce, setGifNonce] = useState(0); // bump to force gif restart
   const bgRef = useRef<HTMLAudioElement | null>(null);
   const lineRef = useRef<HTMLAudioElement | null>(null);
 
-  // Background music: chosen once on mount, doesn't restart on step changes.
   useEffect(() => {
     const bg = playSecret(bgTrack, { loop: true, volume: 0.6 });
     bgRef.current = bg;
@@ -359,30 +355,22 @@ function Sakura() {
     };
   }, [bgTrack]);
 
-  // Preload upcoming GIFs + WAVs so transitions between lines are instant
-  // and the current GIF has no time to visibly loop before the next mounts.
+  // Preload WAVs so audio transitions are instant. (GIFs are cached by the
+  // Gif component's decoder cache after first play.)
   useEffect(() => {
-    const all = [...SEQUENCE, FINAL];
-    for (const d of all) {
-      const img = new Image();
-      img.src = ghAsset(d.gif);
+    for (const d of [...SEQUENCE, FINAL]) {
       const a = new Audio();
       a.preload = "auto";
       a.src = gh(d.wav);
     }
   }, []);
 
-  // Advance to next line (or finish)
   const advance = useCallback(() => {
     setStep((s) => {
       if (s === null) return s;
-      if (s === -1) {
-        // final done -> back to idle
-        return null;
-      }
+      if (s === -1) return null;
       const next = s + 1;
       if (next >= SEQUENCE.length) {
-        // finished sequence
         window.localStorage.setItem(SAKURA_KEY, "1");
         setCompleted(true);
         return null;
@@ -403,14 +391,24 @@ function Sakura() {
     });
   }, [step, advance]);
 
-  // Keyboard skip — stops current audio AND advances immediately so both
-  // the gif and its sound are seamlessly cut.
+  // Keyboard: Z restarts current dialogue's gif + audio from the start.
+  // C / Enter / Ctrl / Space skip to the next line.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (step === null) return;
+      if (e.key === "z" || e.key === "Z") {
+        e.preventDefault();
+        stopSecret(lineRef.current);
+        lineRef.current = null;
+        const dlg = step === -1 ? FINAL : SEQUENCE[step];
+        setGifNonce((n) => n + 1);
+        lineRef.current = playSecret(gh(dlg.wav), {
+          volume: 0.9,
+          onEnded: advance,
+        });
+        return;
+      }
       if (
-        e.key === "z" ||
-        e.key === "Z" ||
         e.key === "Enter" ||
         e.key === "c" ||
         e.key === "C" ||
@@ -452,21 +450,20 @@ function Sakura() {
       </div>
       {currentDialogue && (
         <div
-          key={`${step}-${currentDialogue.gif}`}
           className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2"
           style={{ width: "min(90vw, 900px)" }}
         >
-          <img
+          <Gif
             src={ghAsset(currentDialogue.gif)}
-            alt=""
+            resetKey={`${step}-${gifNonce}`}
             className="mx-auto block h-auto w-full"
-            style={{ imageRendering: "pixelated" }}
           />
         </div>
       )}
     </div>
   );
 }
+
 
 // ─── Water (looping video background) ────────────────────
 function Water() {
