@@ -12,6 +12,7 @@ import isThatAll from "@/assets/is_that_all_we_re_worth.mp3.asset.json";
 import fairyVideo from "@/assets/i_ll_be_giving_back_all_my_anger_ive_built_up.mp4.asset.json";
 import { SFX, ghAsset, gh } from "@/lib/asset-urls";
 import { playSecret, stopAllSecrets, stopSecret } from "@/lib/audio-manager";
+import { Gif } from "@/components/countdown/Gif";
 
 export const Route = createFileRoute("/reveal/$slug")({
   ssr: false,
