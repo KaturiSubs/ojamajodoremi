@@ -7,27 +7,6 @@ const inputSchema = z.object({
   userAgent: z.string().max(500).optional(),
 });
 
-const FORBIDDEN = new Set(
-  [
-    "loli",
-    "lolicon",
-    "doremi-fansubs",
-    "fansubs",
-    "pedo",
-    "pedophile",
-    "sex",
-    "r34",
-    "rule34",
-    "hentai",
-    "shota",
-    "shotacon",
-    "weird route",
-    "weird",
-    "thorn",
-    "thorn ring",
-  ].map((s) => s.trim().toLowerCase()),
-);
-
 const WATER = new Set(
   [
     "majo pi",
@@ -45,6 +24,20 @@ const WATER = new Set(
   ].map((s) => s.trim().toLowerCase()),
 );
 
+async function loadForbidden(): Promise<Set<string>> {
+  const { supabaseAdmin } = await import(
+    "@/integrations/supabase/client.server"
+  );
+  const { data } = await supabaseAdmin
+    .from("site_settings")
+    .select("ominous_phrases")
+    .eq("id", 1)
+    .maybeSingle();
+  const list: string[] = (data?.ominous_phrases as string[] | null) ?? [];
+  return new Set(list.map((s) => s.trim().toLowerCase()).filter(Boolean));
+}
+
+
 export const checkSecret = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ data }) => {
@@ -53,6 +46,7 @@ export const checkSecret = createServerFn({ method: "POST" })
     );
 
     const normalized = data.guess.trim().toLowerCase();
+    const FORBIDDEN = await loadForbidden();
 
     // Ominous phrases: log + return "ominous" so client plays the hell-super
     // sound AND triggers the white-fade / spam escalation on the countdown.

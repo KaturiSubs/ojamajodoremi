@@ -123,6 +123,7 @@ export type Database = {
           default_volume: number
           id: number
           music_url: string | null
+          ominous_phrases: string[]
           title: string
           updated_at: string
           youtube_url: string | null
@@ -134,6 +135,7 @@ export type Database = {
           default_volume?: number
           id?: number
           music_url?: string | null
+          ominous_phrases?: string[]
           title?: string
           updated_at?: string
           youtube_url?: string | null
@@ -145,6 +147,7 @@ export type Database = {
           default_volume?: number
           id?: number
           music_url?: string | null
+          ominous_phrases?: string[]
           title?: string
           updated_at?: string
           youtube_url?: string | null

@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import sfxAsset from "@/assets/computer_loading.mp3.asset.json";
 
-type DigitState = { value: number; manual: boolean };
+type DigitState = { value: number; manual: boolean; adjusting?: boolean };
 
 const makeInitial = (): DigitState[] =>
   Array.from({ length: 8 }, () => ({
     value: Math.floor(Math.random() * 10),
     manual: false,
+    adjusting: false,
   }));
 
 function Digit({
@@ -52,7 +53,7 @@ function Digit({
       }
       className="inline-block select-none tabular-nums"
       style={{
-        filter: state.manual ? "none" : "blur(1.2px)",
+        filter: state.manual && !state.adjusting ? "none" : "blur(1.2px)",
         textShadow: "0 0 12px rgba(233,228,255,0.7)",
         touchAction: customizable ? "none" : "auto",
         cursor: customizable ? "ns-resize" : "default",
@@ -110,22 +111,31 @@ export function CyclingCountdown({
     }, 20000);
   };
 
-  // All 8 digits = 6 -> sakura secret
+  // All 8 digits = 6 -> ominous escalation (white-out to /chapters)
   useEffect(() => {
     if (!customizable) return;
     if (digits.every((d) => d.manual && d.value === 6)) {
-      navigate({ to: "/reveal/$slug", params: { slug: "sakura" } });
+      navigate({ to: "/chapters", search: { fromwhite: 1 } as any });
     }
   }, [digits, customizable, navigate]);
 
+  const adjustClearRef = useRef<Record<number, number>>({});
   const changeDigit = (i: number, delta: number) => {
     setDigits((ds) =>
       ds.map((d, idx) =>
         idx === i
-          ? { manual: true, value: (d.value + delta + 10) % 10 }
+          ? { manual: true, adjusting: true, value: (d.value + delta + 10) % 10 }
           : d,
       ),
     );
+    // Clear the transient adjusting blur ~180ms after the last change on
+    // this digit so rapid scrolls keep the blur pinned.
+    if (adjustClearRef.current[i]) window.clearTimeout(adjustClearRef.current[i]);
+    adjustClearRef.current[i] = window.setTimeout(() => {
+      setDigits((ds) =>
+        ds.map((d, idx) => (idx === i ? { ...d, adjusting: false } : d)),
+      );
+    }, 180);
     bumpIdle();
   };
 

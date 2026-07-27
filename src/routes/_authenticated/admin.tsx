@@ -114,6 +114,7 @@ function SettingsTab() {
         background_kind: s.background_kind,
         music_url: s.music_url,
         default_volume: s.default_volume,
+        ominous_phrases: s.ominous_phrases ?? [],
       })
       .eq("id", 1);
     setSaving(false);
@@ -173,6 +174,23 @@ function SettingsTab() {
           value={s.default_volume ?? 60}
           onChange={(e) => set("default_volume", Number(e.target.value))}
         />
+      </div>
+      <div>
+        <Label>Ominous phrases (one per line, case-insensitive)</Label>
+        <Textarea
+          rows={8}
+          value={(s.ominous_phrases ?? []).join("\n")}
+          onChange={(e) =>
+            set(
+              "ominous_phrases",
+              e.target.value.split("\n").map((v) => v.trim()).filter(Boolean) as any,
+            )
+          }
+        />
+        <p className="mt-1 font-mono text-xs text-[color:var(--retro-muted)]">
+          Typing any of these into the countdown input triggers the ominous
+          escalation (hell-super sound + white-flash → /chapters).
+        </p>
       </div>
       <Button onClick={save} disabled={saving} className="font-mono uppercase tracking-widest">
         {saving ? "saving…" : "save"}
