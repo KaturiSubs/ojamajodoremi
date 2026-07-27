@@ -53,7 +53,7 @@ function Digit({
       }
       className="inline-block select-none tabular-nums"
       style={{
-        filter: state.manual ? "none" : "blur(1.2px)",
+        filter: state.manual && !state.adjusting ? "none" : "blur(1.2px)",
         textShadow: "0 0 12px rgba(233,228,255,0.7)",
         touchAction: customizable ? "none" : "auto",
         cursor: customizable ? "ns-resize" : "default",
