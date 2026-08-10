@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import guitarAsset from "@/assets/guitar.png.asset.json";
+import originalAsset from "@/assets/original.png.asset.json";
 import loveAndPeace from "@/assets/love_and_peace.wav.asset.json";
 import lovelyGuitar from "@/assets/lovely_guitar.wav.asset.json";
 import burnGif from "@/assets/burn.gif.asset.json";
@@ -30,8 +31,24 @@ const TEXTS: Record<string, string> = {
   help: "If it doesn't work the first time, try again later.",
 };
 
-function BlackText({ text }: { text: string }) {
-  useEffect(() => () => stopAllSecrets(), []);
+const TEXT_MUSIC: Record<string, string> = {
+  "onpu-segawa": SFX.onpu,
+  "hazuki-fujiwara": SFX.hazuki,
+  hana: SFX.hana,
+  "wrong-series": SFX.wrongSeries,
+  lol: SFX.lol,
+  roxanne: SFX.roxanne,
+  help: SFX.help,
+};
+
+function BlackText({ text, music }: { text: string; music?: string }) {
+  useEffect(() => {
+    const a = music ? playSecret(music, { loop: true, volume: 0.8 }) : null;
+    return () => {
+      stopSecret(a);
+      stopAllSecrets();
+    };
+  }, [music]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center font-sans text-2xl font-medium text-white sm:text-4xl">
       {text}
@@ -272,7 +289,7 @@ function Carnival() {
           transform: `scale(${scale})`,
           transition: "transform 120ms",
           imageRendering: "pixelated",
-          maxWidth: "40vw",
+          maxWidth: "min(28vw, 180px)",
           cursor: locked ? "default" : "pointer",
           pointerEvents: locked ? "none" : "auto",
         }}
@@ -284,7 +301,13 @@ function Carnival() {
 // ─── Fafa (pop) ──────────────────────────────────────────
 function Fafa() {
   const [n, setN] = useState(0);
-  useEffect(() => () => stopAllSecrets(), []);
+  useEffect(() => {
+    const a = playSecret(SFX.fafaMusic, { loop: true, volume: 0.8 });
+    return () => {
+      stopSecret(a);
+      stopAllSecrets();
+    };
+  }, []);
   const filter = `brightness(${Math.max(0, 1 - n * 0.08)}) saturate(${1 + n * 0.3}) contrast(${1 + n * 0.2}) grayscale(${Math.min(0.7, n * 0.1)})`;
   return (
     <div className="flex min-h-screen items-center justify-center bg-black">
@@ -299,6 +322,27 @@ function Fafa() {
           maxWidth: "40vw",
           cursor: "pointer",
         }}
+      />
+    </div>
+  );
+}
+
+// ─── Doremi (original.png + Insanity loop) ───────────────
+function Doremi() {
+  useEffect(() => {
+    const a = playSecret(SFX.doremi, { loop: true, volume: 0.8 });
+    return () => {
+      stopSecret(a);
+      stopAllSecrets();
+    };
+  }, []);
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-black">
+      <img
+        src={originalAsset.url}
+        alt=""
+        className="max-h-screen max-w-full"
+        style={{ imageRendering: "pixelated" }}
       />
     </div>
   );
@@ -391,42 +435,38 @@ function Sakura() {
     });
   }, [step, advance]);
 
-  // Keyboard: Z restarts current dialogue's gif + audio from the start.
-  // C / Enter / Ctrl / Space skip to the next line.
+  const skip = useCallback(() => {
+    stopSecret(lineRef.current);
+    lineRef.current = null;
+    advance();
+  }, [advance]);
+
+  // Keyboard: Z / C / Enter / Ctrl / Space all skip to the next line.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (step === null) return;
-      if (e.key === "z" || e.key === "Z") {
-        e.preventDefault();
-        stopSecret(lineRef.current);
-        lineRef.current = null;
-        const dlg = step === -1 ? FINAL : SEQUENCE[step];
-        setGifNonce((n) => n + 1);
-        lineRef.current = playSecret(gh(dlg.wav), {
-          volume: 0.9,
-          onEnded: advance,
-        });
-        return;
-      }
       if (
         e.key === "Enter" ||
+        e.key === "z" ||
+        e.key === "Z" ||
         e.key === "c" ||
         e.key === "C" ||
         e.key === "Control" ||
         e.key === " "
       ) {
         e.preventDefault();
-        stopSecret(lineRef.current);
-        lineRef.current = null;
-        advance();
+        skip();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, advance]);
+  }, [step, skip]);
 
   function onTreeClick() {
     if (step !== null) return;
+    // Force a fresh gif playback from frame 0 even if the same step index
+    // is replayed (e.g. the FINAL line on repeat visits).
+    setGifNonce((n) => n + 1);
     if (completed) setStep(-1);
     else setStep(0);
   }
@@ -450,13 +490,18 @@ function Sakura() {
       </div>
       {currentDialogue && (
         <div
-          className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2"
-          style={{ width: "min(90vw, 900px)" }}
+          onClick={skip}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            skip();
+          }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer"
+          style={{ width: "min(90vw, 900px)", touchAction: "manipulation" }}
         >
           <Gif
             src={ghAsset(currentDialogue.gif)}
             resetKey={`${step}-${gifNonce}`}
-            className="mx-auto block h-auto w-full"
+            className="pointer-events-none mx-auto block h-auto w-full"
           />
         </div>
       )}
@@ -523,7 +568,9 @@ function ChapterOpening({ n }: { n: number }) {
 function RevealPage() {
   const { slug } = useParams({ from: "/reveal/$slug" });
 
-  if (slug in TEXTS) return <BlackText text={TEXTS[slug]} />;
+  if (slug in TEXTS)
+    return <BlackText text={TEXTS[slug]} music={TEXT_MUSIC[slug]} />;
+  if (slug === "doremi") return <Doremi />;
   if (slug === "aiko") return <Aiko />;
   if (slug === "momo") return <Momo />;
   if (slug === "tense") return <Tense />;

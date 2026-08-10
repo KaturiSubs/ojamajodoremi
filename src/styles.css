@@ -2,6 +2,13 @@
 @source "../src";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "Determination Mono";
+  src: url("/__l5e/assets-v1/dfb81424-f9e1-49db-bb36-78df9da0c439/determination.ttf")
+    format("truetype");
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -210,3 +217,9 @@
   80% { transform: translateX(4px); }
 }
 .shake { animation: retro-shake 0.4s ease-in-out; }
+
+@keyframes pop-in {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}

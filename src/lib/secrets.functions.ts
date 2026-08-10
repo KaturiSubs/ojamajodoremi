@@ -7,6 +7,10 @@ const inputSchema = z.object({
   userAgent: z.string().max(500).optional(),
 });
 
+const PROGRESS = new Set(
+  ["progress", "update", "updates", "when"].map((s) => s.trim().toLowerCase()),
+);
+
 const WATER = new Set(
   [
     "majo pi",
@@ -61,6 +65,21 @@ export const checkSecret = createServerFn({ method: "POST" })
         correct: false as const,
         forbidden: true as const,
         ominous: true as const,
+      };
+    }
+
+    // Progress secret.
+    if (PROGRESS.has(normalized)) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "progress",
+        guess: data.guess,
+        is_correct: true,
+        user_agent: data.userAgent ?? null,
+      });
+      return {
+        correct: true as const,
+        redirect: "/progress",
+        forbidden: false as const,
       };
     }
 

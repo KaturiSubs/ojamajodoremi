@@ -1,0 +1,1 @@
+update public.secrets set on_correct_redirect='/reveal/doremi' where slug='witch';
