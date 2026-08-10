@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as ChaptersRouteImport } from './routes/chapters'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -17,6 +18,11 @@ import { Route as SecretSlugRouteImport } from './routes/secret.$slug'
 import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChaptersRoute = ChaptersRouteImport.update({
   id: '/chapters',
   path: '/chapters',
@@ -56,6 +62,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chapters': typeof ChaptersRoute
+  '/progress': typeof ProgressRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
@@ -64,6 +71,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/chapters': typeof ChaptersRoute
+  '/progress': typeof ProgressRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
@@ -74,6 +82,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/chapters': typeof ChaptersRoute
+  '/progress': typeof ProgressRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
@@ -84,17 +93,26 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/chapters'
+    | '/progress'
     | '/admin'
     | '/reveal/$slug'
     | '/secret/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/chapters' | '/admin' | '/reveal/$slug' | '/secret/$slug'
+  to:
+    | '/'
+    | '/auth'
+    | '/chapters'
+    | '/progress'
+    | '/admin'
+    | '/reveal/$slug'
+    | '/secret/$slug'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/chapters'
+    | '/progress'
     | '/_authenticated/admin'
     | '/reveal/$slug'
     | '/secret/$slug'
@@ -105,12 +123,20 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ChaptersRoute: typeof ChaptersRoute
+  ProgressRoute: typeof ProgressRoute
   RevealSlugRoute: typeof RevealSlugRoute
   SecretSlugRoute: typeof SecretSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chapters': {
       id: '/chapters'
       path: '/chapters'
@@ -179,19 +205,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ChaptersRoute: ChaptersRoute,
+  ProgressRoute: ProgressRoute,
   RevealSlugRoute: RevealSlugRoute,
   SecretSlugRoute: SecretSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
