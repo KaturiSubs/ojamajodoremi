@@ -2,6 +2,13 @@
 @source "../src";
 @import "tw-animate-css";
 
+@font-face {
+  font-family: "Determination Mono";
+  src: url("/__l5e/assets-v1/dfb81424-f9e1-49db-bb36-78df9da0c439/determination.ttf")
+    format("truetype");
+  font-display: swap;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
