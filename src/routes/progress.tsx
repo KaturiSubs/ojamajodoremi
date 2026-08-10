@@ -47,8 +47,9 @@ function ProgressPage() {
             key={b.emoji}
             className="flex items-center gap-3 whitespace-pre text-[#E9E4FF]"
             style={{
-              fontFamily: '"Determination Mono", monospace',
+              fontFamily: 'ui-monospace, "Courier New", monospace',
               fontSize: "clamp(14px, 3.6vw, 28px)",
+              letterSpacing: "-0.05em",
               textShadow: "0 0 12px rgba(210,200,255,0.4)",
             }}
           >
