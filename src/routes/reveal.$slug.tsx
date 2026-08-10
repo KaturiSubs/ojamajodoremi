@@ -435,42 +435,38 @@ function Sakura() {
     });
   }, [step, advance]);
 
-  // Keyboard: Z restarts current dialogue's gif + audio from the start.
-  // C / Enter / Ctrl / Space skip to the next line.
+  const skip = useCallback(() => {
+    stopSecret(lineRef.current);
+    lineRef.current = null;
+    advance();
+  }, [advance]);
+
+  // Keyboard: Z / C / Enter / Ctrl / Space all skip to the next line.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (step === null) return;
-      if (e.key === "z" || e.key === "Z") {
-        e.preventDefault();
-        stopSecret(lineRef.current);
-        lineRef.current = null;
-        const dlg = step === -1 ? FINAL : SEQUENCE[step];
-        setGifNonce((n) => n + 1);
-        lineRef.current = playSecret(gh(dlg.wav), {
-          volume: 0.9,
-          onEnded: advance,
-        });
-        return;
-      }
       if (
         e.key === "Enter" ||
+        e.key === "z" ||
+        e.key === "Z" ||
         e.key === "c" ||
         e.key === "C" ||
         e.key === "Control" ||
         e.key === " "
       ) {
         e.preventDefault();
-        stopSecret(lineRef.current);
-        lineRef.current = null;
-        advance();
+        skip();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, advance]);
+  }, [step, skip]);
 
   function onTreeClick() {
     if (step !== null) return;
+    // Force a fresh gif playback from frame 0 even if the same step index
+    // is replayed (e.g. the FINAL line on repeat visits).
+    setGifNonce((n) => n + 1);
     if (completed) setStep(-1);
     else setStep(0);
   }
@@ -494,13 +490,18 @@ function Sakura() {
       </div>
       {currentDialogue && (
         <div
-          className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2"
-          style={{ width: "min(90vw, 900px)" }}
+          onClick={skip}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            skip();
+          }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer"
+          style={{ width: "min(90vw, 900px)", touchAction: "manipulation" }}
         >
           <Gif
             src={ghAsset(currentDialogue.gif)}
             resetKey={`${step}-${gifNonce}`}
-            className="mx-auto block h-auto w-full"
+            className="pointer-events-none mx-auto block h-auto w-full"
           />
         </div>
       )}
