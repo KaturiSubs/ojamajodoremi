@@ -7,6 +7,10 @@ const inputSchema = z.object({
   userAgent: z.string().max(500).optional(),
 });
 
+const PROGRESS = new Set(
+  ["progress", "update", "updates", "when"].map((s) => s.trim().toLowerCase()),
+);
+
 const WATER = new Set(
   [
     "majo pi",
