@@ -30,8 +30,24 @@ const TEXTS: Record<string, string> = {
   help: "If it doesn't work the first time, try again later.",
 };
 
-function BlackText({ text }: { text: string }) {
-  useEffect(() => () => stopAllSecrets(), []);
+const TEXT_MUSIC: Record<string, string> = {
+  "onpu-segawa": SFX.onpu,
+  "hazuki-fujiwara": SFX.hazuki,
+  hana: SFX.hana,
+  "wrong-series": SFX.wrongSeries,
+  lol: SFX.lol,
+  roxanne: SFX.roxanne,
+  help: SFX.help,
+};
+
+function BlackText({ text, music }: { text: string; music?: string }) {
+  useEffect(() => {
+    const a = music ? playSecret(music, { loop: true, volume: 0.8 }) : null;
+    return () => {
+      stopSecret(a);
+      stopAllSecrets();
+    };
+  }, [music]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-black px-6 text-center font-sans text-2xl font-medium text-white sm:text-4xl">
       {text}
