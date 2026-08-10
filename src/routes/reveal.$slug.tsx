@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import guitarAsset from "@/assets/guitar.png.asset.json";
+import originalAsset from "@/assets/original.png.asset.json";
 import loveAndPeace from "@/assets/love_and_peace.wav.asset.json";
 import lovelyGuitar from "@/assets/lovely_guitar.wav.asset.json";
 import burnGif from "@/assets/burn.gif.asset.json";
