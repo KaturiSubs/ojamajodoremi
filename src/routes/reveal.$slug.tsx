@@ -288,7 +288,7 @@ function Carnival() {
           transform: `scale(${scale})`,
           transition: "transform 120ms",
           imageRendering: "pixelated",
-          maxWidth: "40vw",
+          maxWidth: "min(28vw, 180px)",
           cursor: locked ? "default" : "pointer",
           pointerEvents: locked ? "none" : "auto",
         }}
