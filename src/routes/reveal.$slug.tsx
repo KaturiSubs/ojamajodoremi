@@ -289,7 +289,7 @@ function Carnival() {
           transform: `scale(${scale})`,
           transition: "transform 120ms",
           imageRendering: "pixelated",
-          maxWidth: "40vw",
+          width: "min(18vw, 90px)",
           cursor: locked ? "default" : "pointer",
           pointerEvents: locked ? "none" : "auto",
         }}
@@ -301,7 +301,13 @@ function Carnival() {
 // ─── Fafa (pop) ──────────────────────────────────────────
 function Fafa() {
   const [n, setN] = useState(0);
-  useEffect(() => () => stopAllSecrets(), []);
+  useEffect(() => {
+    const a = playSecret(SFX.fafaMusic, { loop: true, volume: 0.8 });
+    return () => {
+      stopSecret(a);
+      stopAllSecrets();
+    };
+  }, []);
   const filter = `brightness(${Math.max(0, 1 - n * 0.08)}) saturate(${1 + n * 0.3}) contrast(${1 + n * 0.2}) grayscale(${Math.min(0.7, n * 0.1)})`;
   return (
     <div className="flex min-h-screen items-center justify-center bg-black">
@@ -316,6 +322,26 @@ function Fafa() {
           maxWidth: "40vw",
           cursor: "pointer",
         }}
+      />
+    </div>
+  );
+}
+
+// ─── Doremi ──────────────────────────────────────────────
+function Doremi() {
+  useEffect(() => {
+    const a = playSecret(SFX.doremi, { loop: true, volume: 0.8 });
+    return () => {
+      stopSecret(a);
+      stopAllSecrets();
+    };
+  }, []);
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-black">
+      <img
+        src={doremiImg.url}
+        alt=""
+        style={{ imageRendering: "pixelated", maxWidth: "70vw", maxHeight: "90vh" }}
       />
     </div>
   );
