@@ -32,4 +32,13 @@ export const SFX = {
   tranquility: ghAsset("Tranquility.wav"),
   fafa: ghAsset("fafa.png"),
   trumpet: ghAsset("trumpet.png"),
+  hana: ghAsset("The Witchheart's Triumphant Return.wav"),
+  doremi: ghAsset("Insanity.mp3"),
+  hazuki: ghAsset("The Sound of Snow.mp3"),
+  onpu: ghAsset("Preface to Misfortune.mp3"),
+  roxanne: ghAsset("Gallery of Madness.mp3"),
+  wrongSeries: ghAsset("Depressive Paranoia.mp3"),
+  lol: ghAsset("For a moment there.mp3"),
+  help: ghAsset("Thoughts.mp3"),
+  fafaMusic: ghAsset("Fantasy Lied.wav"),
 };
