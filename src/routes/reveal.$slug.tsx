@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import guitarAsset from "@/assets/guitar.png.asset.json";
-import originalAsset from "@/assets/original.png.asset.json";
 import loveAndPeace from "@/assets/love_and_peace.wav.asset.json";
 import lovelyGuitar from "@/assets/lovely_guitar.wav.asset.json";
+import doremiImg from "@/assets/original.png.asset.json";
 import burnGif from "@/assets/burn.gif.asset.json";
 import burnMp3 from "@/assets/burn.mp3.asset.json";
 import burnDiary from "@/assets/burn_the_diary.wav.asset.json";
@@ -31,6 +31,7 @@ const TEXTS: Record<string, string> = {
   help: "If it doesn't work the first time, try again later.",
 };
 
+// Looping BGM that starts immediately on each text secret.
 const TEXT_MUSIC: Record<string, string> = {
   "onpu-segawa": SFX.onpu,
   "hazuki-fujiwara": SFX.hazuki,
@@ -289,7 +290,7 @@ function Carnival() {
           transform: `scale(${scale})`,
           transition: "transform 120ms",
           imageRendering: "pixelated",
-          maxWidth: "min(28vw, 180px)",
+          width: "min(18vw, 90px)",
           cursor: locked ? "default" : "pointer",
           pointerEvents: locked ? "none" : "auto",
         }}
@@ -327,7 +328,7 @@ function Fafa() {
   );
 }
 
-// ─── Doremi (original.png + Insanity loop) ───────────────
+// ─── Doremi ──────────────────────────────────────────────
 function Doremi() {
   useEffect(() => {
     const a = playSecret(SFX.doremi, { loop: true, volume: 0.8 });
@@ -339,10 +340,9 @@ function Doremi() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-black">
       <img
-        src={originalAsset.url}
+        src={doremiImg.url}
         alt=""
-        className="max-h-screen max-w-full"
-        style={{ imageRendering: "pixelated" }}
+        style={{ imageRendering: "pixelated", maxWidth: "70vw", maxHeight: "90vh" }}
       />
     </div>
   );
@@ -435,38 +435,42 @@ function Sakura() {
     });
   }, [step, advance]);
 
-  const skip = useCallback(() => {
-    stopSecret(lineRef.current);
-    lineRef.current = null;
-    advance();
-  }, [advance]);
-
-  // Keyboard: Z / C / Enter / Ctrl / Space all skip to the next line.
+  // Keyboard: Z restarts current dialogue's gif + audio from the start.
+  // C / Enter / Ctrl / Space skip to the next line.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (step === null) return;
+      if (e.key === "z" || e.key === "Z") {
+        e.preventDefault();
+        stopSecret(lineRef.current);
+        lineRef.current = null;
+        const dlg = step === -1 ? FINAL : SEQUENCE[step];
+        setGifNonce((n) => n + 1);
+        lineRef.current = playSecret(gh(dlg.wav), {
+          volume: 0.9,
+          onEnded: advance,
+        });
+        return;
+      }
       if (
         e.key === "Enter" ||
-        e.key === "z" ||
-        e.key === "Z" ||
         e.key === "c" ||
         e.key === "C" ||
         e.key === "Control" ||
         e.key === " "
       ) {
         e.preventDefault();
-        skip();
+        stopSecret(lineRef.current);
+        lineRef.current = null;
+        advance();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, skip]);
+  }, [step, advance]);
 
   function onTreeClick() {
     if (step !== null) return;
-    // Force a fresh gif playback from frame 0 even if the same step index
-    // is replayed (e.g. the FINAL line on repeat visits).
-    setGifNonce((n) => n + 1);
     if (completed) setStep(-1);
     else setStep(0);
   }
@@ -490,18 +494,13 @@ function Sakura() {
       </div>
       {currentDialogue && (
         <div
-          onClick={skip}
-          onTouchEnd={(e) => {
-            e.preventDefault();
-            skip();
-          }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer"
-          style={{ width: "min(90vw, 900px)", touchAction: "manipulation" }}
+          className="pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2"
+          style={{ width: "min(90vw, 900px)" }}
         >
           <Gif
             src={ghAsset(currentDialogue.gif)}
             resetKey={`${step}-${gifNonce}`}
-            className="pointer-events-none mx-auto block h-auto w-full"
+            className="mx-auto block h-auto w-full"
           />
         </div>
       )}

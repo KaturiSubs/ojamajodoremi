@@ -7,10 +7,6 @@ const inputSchema = z.object({
   userAgent: z.string().max(500).optional(),
 });
 
-const PROGRESS = new Set(
-  ["progress", "update", "updates", "when"].map((s) => s.trim().toLowerCase()),
-);
-
 const WATER = new Set(
   [
     "majo pi",
@@ -27,6 +23,8 @@ const WATER = new Set(
     "drink water",
   ].map((s) => s.trim().toLowerCase()),
 );
+
+const PROGRESS = new Set(["progress", "update", "when"]);
 
 async function loadForbidden(): Promise<Set<string>> {
   const { supabaseAdmin } = await import(
@@ -68,6 +66,21 @@ export const checkSecret = createServerFn({ method: "POST" })
       };
     }
 
+    // Water secret: hard-coded correct phrases redirect to /reveal/water.
+    if (WATER.has(normalized)) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "water",
+        guess: data.guess,
+        is_correct: true,
+        user_agent: data.userAgent ?? null,
+      });
+      return {
+        correct: true as const,
+        redirect: "/reveal/water",
+        forbidden: false as const,
+      };
+    }
+
     // Progress secret.
     if (PROGRESS.has(normalized)) {
       await supabaseAdmin.from("secret_submissions").insert({
@@ -83,20 +96,7 @@ export const checkSecret = createServerFn({ method: "POST" })
       };
     }
 
-    // Water secret: hard-coded correct phrases redirect to /reveal/water.
-    if (WATER.has(normalized)) {
-      await supabaseAdmin.from("secret_submissions").insert({
-        secret_slug: "water",
-        guess: data.guess,
-        is_correct: true,
-        user_agent: data.userAgent ?? null,
-      });
-      return {
-        correct: true as const,
-        redirect: "/reveal/water",
-        forbidden: false as const,
-      };
-    }
+
 
     let query = supabaseAdmin
       .from("secrets")

@@ -1,79 +1,44 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { stopAllSecrets } from "@/lib/audio-manager";
+import { useState } from "react";
 
 export const Route = createFileRoute("/progress")({
   ssr: false,
   head: () => ({
-    meta: [{ title: "//" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "…" }, { name: "robots", content: "noindex" }],
   }),
   component: ProgressPage,
 });
 
-const BARS = [
-  { emoji: "📝", pct: 100 },
-  { emoji: "🗣️", pct: 30 },
-  { emoji: "🎬", pct: 0 },
-];
+const WIDTH = 20;
 
-const SEGMENTS = 20;
-const UPDATE_COUNT = 6;
-
-function bar(pct: number) {
-  const filled = Math.round((pct / 100) * SEGMENTS);
-  return "▓".repeat(filled) + "░".repeat(SEGMENTS - filled);
+function Bar({ emoji, pct }: { emoji: string; pct: number }) {
+  const filled = Math.round((pct / 100) * WIDTH);
+  return (
+    <div className="flex items-center gap-3 whitespace-nowrap">
+      <span className="text-2xl sm:text-3xl">{emoji}</span>
+      <span className="tracking-tight">
+        {"▓".repeat(filled)}
+        {"░".repeat(WIDTH - filled)}
+      </span>
+    </div>
+  );
 }
 
 function ProgressPage() {
   const [shown, setShown] = useState(false);
-  const [pop, setPop] = useState(0);
-
-  useEffect(() => () => stopAllSecrets(), []);
-
-  useEffect(() => {
-    const onClick = () => {
-      setShown(true);
-      setPop((n) => n + 1);
-    };
-    window.addEventListener("click", onClick);
-    return () => window.removeEventListener("click", onClick);
-  }, []);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-black px-6">
-      <div className="flex flex-col gap-4">
-        {BARS.map((b) => (
-          <div
-            key={b.emoji}
-            className="flex items-center gap-3 whitespace-pre text-[#E9E4FF]"
-            style={{
-              fontFamily: 'ui-monospace, "Courier New", monospace',
-              fontSize: "clamp(14px, 3.6vw, 28px)",
-              letterSpacing: "-0.05em",
-              textShadow: "0 0 12px rgba(210,200,255,0.4)",
-            }}
-          >
-            <span style={{ fontFamily: "system-ui, sans-serif" }}>
-              {b.emoji}
-            </span>
-            <span>{bar(b.pct)}</span>
-          </div>
-        ))}
+    <div
+      onClick={() => setShown(true)}
+      className="flex min-h-screen cursor-default flex-col items-center justify-center gap-4 bg-black px-6 text-white"
+      style={{ fontFamily: "'Determination Mono', monospace" }}
+    >
+      <div className="flex flex-col gap-3 text-lg sm:text-2xl">
+        <Bar emoji="📝" pct={100} />
+        <Bar emoji="🗣️" pct={30} />
+        <Bar emoji="🎬" pct={0} />
       </div>
-
-      {shown && (
-        <p
-          key={pop}
-          className="text-center text-white"
-          style={{
-            fontFamily: '"Determination Mono", monospace',
-            fontSize: "clamp(14px, 3vw, 24px)",
-            animation: "pop-in 400ms ease-out",
-          }}
-        >
-          THIS WEBSITE HAS BEEN UPDATED {UPDATE_COUNT} TIMES.
-        </p>
-      )}
+      <div className="mt-6 h-10 text-3xl sm:text-4xl">{shown ? "6" : ""}</div>
     </div>
   );
 }

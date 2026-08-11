@@ -32,11 +32,8 @@ export const SFX = {
   tranquility: ghAsset("Tranquility.wav"),
   fafa: ghAsset("fafa.png"),
   trumpet: ghAsset("trumpet.png"),
-  // Looping BGM for the simple reveal secrets
   hana: ghAsset("The Witchheart's Triumphant Return.wav"),
-  doremi: ghAsset(
-    "Insanity (Kyoki _ 狂気) - Higurashi no Naku Koro ni Kai _ The Lost Tracks.mp3",
-  ),
+  doremi: ghAsset("Insanity.mp3"),
   hazuki: ghAsset("The Sound of Snow.mp3"),
   onpu: ghAsset("Preface to Misfortune.mp3"),
   roxanne: ghAsset("Gallery of Madness.mp3"),

@@ -20,55 +20,37 @@ function Digit({
   customizable: boolean;
   onChange: (delta: number) => void;
 }) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const changeRef = useRef(onChange);
-  changeRef.current = onChange;
-
-  // Native non-passive listeners: React attaches touch/wheel handlers as
-  // passive, so preventDefault() there is ignored and the page scrolls
-  // instead of the digit changing on phones/tablets.
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !customizable) return;
-    let touchY: number | null = null;
-
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      changeRef.current(e.deltaY > 0 ? -1 : 1);
-    };
-    const onStart = (e: TouchEvent) => {
-      touchY = e.touches[0].clientY;
-    };
-    const onMove = (e: TouchEvent) => {
-      if (touchY == null) return;
-      e.preventDefault();
-      const dy = e.touches[0].clientY - touchY;
-      if (Math.abs(dy) > 14) {
-        changeRef.current(dy > 0 ? -1 : 1);
-        touchY = e.touches[0].clientY;
-      }
-    };
-    const onEnd = () => {
-      touchY = null;
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchstart", onStart, { passive: false });
-    el.addEventListener("touchmove", onMove, { passive: false });
-    el.addEventListener("touchend", onEnd);
-    el.addEventListener("touchcancel", onEnd);
-    return () => {
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchstart", onStart);
-      el.removeEventListener("touchmove", onMove);
-      el.removeEventListener("touchend", onEnd);
-      el.removeEventListener("touchcancel", onEnd);
-    };
-  }, [customizable]);
-
+  const touchY = useRef<number | null>(null);
   return (
     <span
-      ref={ref}
+      onWheel={
+        customizable
+          ? (e) => {
+              e.preventDefault();
+              onChange(e.deltaY > 0 ? -1 : 1);
+            }
+          : undefined
+      }
+      onTouchStart={
+        customizable
+          ? (e) => {
+              touchY.current = e.touches[0].clientY;
+            }
+          : undefined
+      }
+      onTouchMove={
+        customizable
+          ? (e) => {
+              if (touchY.current == null) return;
+              const dy = e.touches[0].clientY - touchY.current;
+              if (Math.abs(dy) > 20) {
+                onChange(dy > 0 ? -1 : 1);
+                touchY.current = e.touches[0].clientY;
+              }
+              e.preventDefault();
+            }
+          : undefined
+      }
       className="inline-block select-none tabular-nums"
       style={{
         filter: state.manual && !state.adjusting ? "none" : "blur(1.2px)",
