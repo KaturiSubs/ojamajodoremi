@@ -24,6 +24,8 @@ const WATER = new Set(
   ].map((s) => s.trim().toLowerCase()),
 );
 
+const PROGRESS = new Set(["progress", "update", "when"]);
+
 async function loadForbidden(): Promise<Set<string>> {
   const { supabaseAdmin } = await import(
     "@/integrations/supabase/client.server"
