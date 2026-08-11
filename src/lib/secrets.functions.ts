@@ -81,6 +81,23 @@ export const checkSecret = createServerFn({ method: "POST" })
       };
     }
 
+    // Progress secret.
+    if (PROGRESS.has(normalized)) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "progress",
+        guess: data.guess,
+        is_correct: true,
+        user_agent: data.userAgent ?? null,
+      });
+      return {
+        correct: true as const,
+        redirect: "/progress",
+        forbidden: false as const,
+      };
+    }
+
+
+
     let query = supabaseAdmin
       .from("secrets")
       .select("id, slug, correct_answers, on_correct_redirect");
