@@ -567,7 +567,9 @@ function ChapterOpening({ n }: { n: number }) {
 function RevealPage() {
   const { slug } = useParams({ from: "/reveal/$slug" });
 
-  if (slug in TEXTS) return <BlackText text={TEXTS[slug]} />;
+  if (slug in TEXTS)
+    return <BlackText text={TEXTS[slug]} music={TEXT_MUSIC[slug]} />;
+  if (slug === "doremi") return <Doremi />;
   if (slug === "aiko") return <Aiko />;
   if (slug === "momo") return <Momo />;
   if (slug === "tense") return <Tense />;
