@@ -216,3 +216,13 @@
   src: url("/__l5e/assets-v1/b4152d3a-a718-461f-ae29-f5a63fefbaf3/determination.ttf") format("truetype");
   font-display: swap;
 }
+
+.dream-line {
+  opacity: 0;
+  animation: dream-fade 2.4s ease-out forwards;
+}
+
+@keyframes dream-fade {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}

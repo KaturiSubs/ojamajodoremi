@@ -16,6 +16,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SecretSlugRouteImport } from './routes/secret.$slug'
 import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
+import { Route as AuthenticatedDreamRouteImport } from './routes/_authenticated/dream'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
 const ProgressRoute = ProgressRouteImport.update({
@@ -52,6 +53,11 @@ const RevealSlugRoute = RevealSlugRouteImport.update({
   path: '/reveal/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDreamRoute = AuthenticatedDreamRouteImport.update({
+  id: '/dream',
+  path: '/dream',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/chapters': typeof ChaptersRoute
   '/progress': typeof ProgressRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/dream': typeof AuthenticatedDreamRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/chapters': typeof ChaptersRoute
   '/progress': typeof ProgressRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/dream': typeof AuthenticatedDreamRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/chapters': typeof ChaptersRoute
   '/progress': typeof ProgressRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/dream': typeof AuthenticatedDreamRoute
   '/reveal/$slug': typeof RevealSlugRoute
   '/secret/$slug': typeof SecretSlugRoute
 }
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/chapters'
     | '/progress'
     | '/admin'
+    | '/dream'
     | '/reveal/$slug'
     | '/secret/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/chapters'
     | '/progress'
     | '/admin'
+    | '/dream'
     | '/reveal/$slug'
     | '/secret/$slug'
   id:
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/chapters'
     | '/progress'
     | '/_authenticated/admin'
+    | '/_authenticated/dream'
     | '/reveal/$slug'
     | '/secret/$slug'
   fileRoutesById: FileRoutesById
@@ -179,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RevealSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dream': {
+      id: '/_authenticated/dream'
+      path: '/dream'
+      fullPath: '/dream'
+      preLoaderRoute: typeof AuthenticatedDreamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -191,10 +210,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedDreamRoute: typeof AuthenticatedDreamRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedDreamRoute: AuthenticatedDreamRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
