@@ -57,6 +57,13 @@ function AdminPage() {
             view site
           </Button>
           <Button
+            variant="outline"
+            onClick={() => navigate({ to: "/dream" })}
+            className="font-mono uppercase tracking-widest"
+          >
+            dream
+          </Button>
+          <Button
             variant="destructive"
             onClick={async () => {
               await supabase.auth.signOut();
