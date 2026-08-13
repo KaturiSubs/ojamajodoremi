@@ -37,6 +37,7 @@ function ProgressPage() {
         <Bar emoji="📝" pct={100} />
         <Bar emoji="🗣️" pct={30} />
         <Bar emoji="🎬" pct={0} />
+        <Bar emoji="🇯🇵" pct={0} />
       </div>
       <div className="mt-6 h-10 text-3xl sm:text-4xl">{shown ? "6" : ""}</div>
     </div>
