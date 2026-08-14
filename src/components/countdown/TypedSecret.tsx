@@ -21,7 +21,11 @@ export function TypedSecret({
   const check = useServerFn(checkSecret);
 
   useEffect(() => {
-    if (revealed) return;
+    if (open) setRevealed(true);
+  }, [open]);
+
+  useEffect(() => {
+    if (revealed || !autoReveal) return;
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest("button, a, input, textarea, [role='button']"))
