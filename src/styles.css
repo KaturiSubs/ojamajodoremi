@@ -219,13 +219,21 @@
 
 .dream-line {
   opacity: 0;
-  animation: dream-fade 2.4s ease-out forwards;
+  animation: dream-fade 0.7s ease-out forwards;
+}
+
+.dream-line,
+.dream-static {
+  text-shadow:
+    0 0 6px rgba(255, 255, 255, 0.28),
+    0 0 18px rgba(200, 200, 255, 0.18);
 }
 
 @keyframes dream-fade {
-  from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(4px); }
+  from { opacity: 0; transform: translateY(6px) scale(0.99); filter: blur(3px); }
   to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
+
 
 .dream-gradient {
   background: linear-gradient(

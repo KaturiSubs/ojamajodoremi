@@ -41,7 +41,7 @@ function ProgressPage() {
         <Bar emoji="🎬" pct={0} />
         <Bar emoji="🇯🇵" pct={0} />
       </div>
-      <div className="mt-4 h-8 text-2xl sm:text-3xl">{shown ? "6" : ""}</div>
+      <div className="mt-4 h-8 text-2xl sm:text-3xl">{shown ? "7" : ""}</div>
     </div>
   );
 }
