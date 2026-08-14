@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Hand } from "lucide-react";
+import tapIcon from "@/assets/tap-icon.png.asset.json";
 import { BackgroundLayer } from "@/components/countdown/BackgroundLayer";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useIsAdmin } from "@/hooks/use-auth";
