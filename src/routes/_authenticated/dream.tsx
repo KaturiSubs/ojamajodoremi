@@ -89,8 +89,29 @@ function DreamPage() {
     }
   }, [visibleCount, hasFinished]);
 
+  function handlePageClick(e: React.MouseEvent) {
+    const target = e.target as HTMLElement | null;
+    if (visibleCount >= TOTAL) {
+      if (
+        !target?.closest("[data-dream-box]") &&
+        !target?.closest("button, a, input, textarea, [role='button']")
+      ) {
+        setSecretOpen(true);
+      }
+      return;
+    }
+    advance();
+  }
+
   function advance() {
     if (visibleCount >= TOTAL) return;
+    try {
+      const s = new Audio(clickSfx.url);
+      s.volume = 0.6;
+      s.play().catch(() => {});
+    } catch {
+      // ignore
+    }
     const next = visibleCount + 1;
     setVisibleCount(next);
     try {
