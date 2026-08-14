@@ -34,7 +34,7 @@ export function TypedSecret({
     };
     window.addEventListener("click", onClick);
     return () => window.removeEventListener("click", onClick);
-  }, [revealed]);
+  }, [revealed, autoReveal]);
 
   useEffect(() => {
     if (revealed) setTimeout(() => inputRef.current?.focus(), 50);
