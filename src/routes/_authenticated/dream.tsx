@@ -59,6 +59,8 @@ function DreamPage() {
 
   const [visibleCount, setVisibleCount] = useState(() => getInitialCount());
   const [hasFinished, setHasFinished] = useState(visibleCount === TOTAL);
+  const [secretOpen, setSecretOpen] = useState(false);
+  const [hintOpen, setHintOpen] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) return;
