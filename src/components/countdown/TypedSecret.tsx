@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SFX } from "@/lib/asset-urls";
 
-export function TypedSecret() {
+export function TypedSecret({
+  autoReveal = true,
+  open = false,
+}: {
+  autoReveal?: boolean;
+  open?: boolean;
+} = {}) {
   const [revealed, setRevealed] = useState(false);
   const [guess, setGuess] = useState("");
   const [wrong, setWrong] = useState(false);
