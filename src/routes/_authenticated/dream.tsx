@@ -5,6 +5,9 @@ import { BackgroundLayer } from "@/components/countdown/BackgroundLayer";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useIsAdmin } from "@/hooks/use-auth";
 import dreamAudio from "@/assets/dreamwatching.wav.asset.json";
+import clickSfx from "@/assets/button-click.wav.asset.json";
+import { TypedSecret } from "@/components/countdown/TypedSecret";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dream")({
   ssr: false,
