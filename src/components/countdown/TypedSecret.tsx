@@ -5,7 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SFX } from "@/lib/asset-urls";
 
-export function TypedSecret() {
+export function TypedSecret({
+  autoReveal = true,
+  open = false,
+}: {
+  autoReveal?: boolean;
+  open?: boolean;
+} = {}) {
   const [revealed, setRevealed] = useState(false);
   const [guess, setGuess] = useState("");
   const [wrong, setWrong] = useState(false);
@@ -15,7 +21,11 @@ export function TypedSecret() {
   const check = useServerFn(checkSecret);
 
   useEffect(() => {
-    if (revealed) return;
+    if (open) setRevealed(true);
+  }, [open]);
+
+  useEffect(() => {
+    if (revealed || !autoReveal) return;
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest("button, a, input, textarea, [role='button']"))
@@ -24,7 +34,7 @@ export function TypedSecret() {
     };
     window.addEventListener("click", onClick);
     return () => window.removeEventListener("click", onClick);
-  }, [revealed]);
+  }, [revealed, autoReveal]);
 
   useEffect(() => {
     if (revealed) setTimeout(() => inputRef.current?.focus(), 50);

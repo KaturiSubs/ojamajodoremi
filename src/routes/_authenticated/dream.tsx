@@ -5,6 +5,9 @@ import { BackgroundLayer } from "@/components/countdown/BackgroundLayer";
 import { useSiteSettings } from "@/hooks/use-site-settings";
 import { useIsAdmin } from "@/hooks/use-auth";
 import dreamAudio from "@/assets/dreamwatching.wav.asset.json";
+import clickSfx from "@/assets/button-click.wav.asset.json";
+import { TypedSecret } from "@/components/countdown/TypedSecret";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dream")({
   ssr: false,
@@ -56,6 +59,8 @@ function DreamPage() {
 
   const [visibleCount, setVisibleCount] = useState(() => getInitialCount());
   const [hasFinished, setHasFinished] = useState(visibleCount === TOTAL);
+  const [secretOpen, setSecretOpen] = useState(false);
+  const [hintOpen, setHintOpen] = useState(false);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -84,8 +89,29 @@ function DreamPage() {
     }
   }, [visibleCount, hasFinished]);
 
+  function handlePageClick(e: React.MouseEvent) {
+    const target = e.target as HTMLElement | null;
+    if (visibleCount >= TOTAL) {
+      if (
+        !target?.closest("[data-dream-box]") &&
+        !target?.closest("button, a, input, textarea, [role='button']")
+      ) {
+        setSecretOpen(true);
+      }
+      return;
+    }
+    advance();
+  }
+
   function advance() {
     if (visibleCount >= TOTAL) return;
+    try {
+      const s = new Audio(clickSfx.url);
+      s.volume = 0.6;
+      s.play().catch(() => {});
+    } catch {
+      // ignore
+    }
     const next = visibleCount + 1;
     setVisibleCount(next);
     try {
@@ -108,15 +134,16 @@ function DreamPage() {
 
   return (
     <div
-      onClick={advance}
+      onClick={handlePageClick}
       className="relative min-h-screen cursor-pointer overflow-hidden bg-black select-none"
     >
       <BackgroundLayer
         url={settings?.background_url ?? null}
         kind={settings?.background_kind ?? "image"}
       />
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-16">
         <div
+          data-dream-box
           className="max-w-2xl space-y-5 rounded-lg bg-black/60 px-6 py-8 text-center text-base leading-relaxed text-white sm:px-10 sm:py-12 sm:text-lg"
           style={{ fontFamily: "'Determination Mono', monospace" }}
         >
@@ -157,7 +184,38 @@ function DreamPage() {
           )}
 
         </div>
+
+        {hasFinished && secretOpen && (
+          <div data-dream-box className="mt-8 flex justify-center">
+            <TypedSecret autoReveal={false} open />
+          </div>
+        )}
       </div>
+
+      {hasFinished && secretOpen && (
+        <div className="fixed left-0 top-1/2 z-20 flex -translate-y-1/2 items-center">
+          <button
+            type="button"
+            aria-label={hintOpen ? "Hide hint" : "Show hint"}
+            onClick={() => setHintOpen((v) => !v)}
+            className="rounded-r-md border border-l-0 border-white/30 bg-black/60 p-2 text-white/80 hover:text-white"
+          >
+            {hintOpen ? (
+              <ChevronLeft className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </button>
+          {hintOpen && (
+            <div
+              className="ml-2 rounded-md border border-white/25 bg-black/70 px-3 py-2 text-sm text-white"
+              style={{ fontFamily: "'Determination Mono', monospace" }}
+            >
+              Hint: doors
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
