@@ -141,7 +141,7 @@ function DreamPage() {
                 style={
                   hasFinished
                     ? undefined
-                    : { animationDelay: `${0.6 + i * 1.1}s` }
+                    : { animationDelay: `${0.1 + i * 0.15}s` }
                 }
               >
                 {chunk.text}
@@ -151,10 +151,11 @@ function DreamPage() {
 
           {!hasFinished && (
             <div className="flex flex-col items-center gap-1 pt-4 tap-hint">
-              <Hand size={24} className="text-white/70" />
-              <span className="text-xs text-white/50">tap to continue</span>
+              <img src={tapIcon.url} alt="" className="h-7 w-7 opacity-80" />
+              <span className="text-xs text-white/50">Tap</span>
             </div>
           )}
+
         </div>
       </div>
     </div>
