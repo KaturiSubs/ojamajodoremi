@@ -141,8 +141,9 @@ function DreamPage() {
         url={settings?.background_url ?? null}
         kind={settings?.background_kind ?? "image"}
       />
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16">
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-4 py-16">
         <div
+          data-dream-box
           className="max-w-2xl space-y-5 rounded-lg bg-black/60 px-6 py-8 text-center text-base leading-relaxed text-white sm:px-10 sm:py-12 sm:text-lg"
           style={{ fontFamily: "'Determination Mono', monospace" }}
         >
