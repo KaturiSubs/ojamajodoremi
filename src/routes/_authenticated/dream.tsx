@@ -134,7 +134,7 @@ function DreamPage() {
 
   return (
     <div
-      onClick={advance}
+      onClick={handlePageClick}
       className="relative min-h-screen cursor-pointer overflow-hidden bg-black select-none"
     >
       <BackgroundLayer
