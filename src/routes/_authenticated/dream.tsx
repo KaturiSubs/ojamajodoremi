@@ -184,7 +184,38 @@ function DreamPage() {
           )}
 
         </div>
+
+        {hasFinished && secretOpen && (
+          <div data-dream-box className="mt-8 flex justify-center">
+            <TypedSecret autoReveal={false} open />
+          </div>
+        )}
       </div>
+
+      {hasFinished && secretOpen && (
+        <div className="fixed left-0 top-1/2 z-20 flex -translate-y-1/2 items-center">
+          <button
+            type="button"
+            aria-label={hintOpen ? "Hide hint" : "Show hint"}
+            onClick={() => setHintOpen((v) => !v)}
+            className="rounded-r-md border border-l-0 border-white/30 bg-black/60 p-2 text-white/80 hover:text-white"
+          >
+            {hintOpen ? (
+              <ChevronLeft className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </button>
+          {hintOpen && (
+            <div
+              className="ml-2 rounded-md border border-white/25 bg-black/70 px-3 py-2 text-sm text-white"
+              style={{ fontFamily: "'Determination Mono', monospace" }}
+            >
+              Hint: doors
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
