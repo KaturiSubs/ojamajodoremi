@@ -107,7 +107,7 @@ function DreamPage() {
     if (visibleCount >= TOTAL) return;
     try {
       const s = new Audio(clickSfx.url);
-      s.volume = 0.6;
+      s.volume = 0.45;
       s.play().catch(() => {});
     } catch {
       // ignore
@@ -168,7 +168,7 @@ function DreamPage() {
                 style={
                   hasFinished
                     ? undefined
-                    : { animationDelay: `${0.1 + i * 0.15}s` }
+                    : { animationDelay: `${0.05 + i * 0.08}s` }
                 }
               >
                 {chunk.text}

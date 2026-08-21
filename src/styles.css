@@ -219,7 +219,7 @@
 
 .dream-line {
   opacity: 0;
-  animation: dream-fade 0.7s ease-out forwards;
+  animation: dream-fade 0.45s ease-out forwards;
 }
 
 .dream-line,
