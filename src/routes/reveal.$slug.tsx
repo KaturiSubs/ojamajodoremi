@@ -14,6 +14,8 @@ import fairyVideo from "@/assets/i_ll_be_giving_back_all_my_anger_ive_built_up.m
 import { SFX, ghAsset, gh } from "@/lib/asset-urls";
 import { playSecret, stopAllSecrets, stopSecret } from "@/lib/audio-manager";
 import { Gif } from "@/components/countdown/Gif";
+import { BackgroundLayer } from "@/components/countdown/BackgroundLayer";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/reveal/$slug")({
   ssr: false,
@@ -22,7 +24,6 @@ export const Route = createFileRoute("/reveal/$slug")({
 });
 
 const TEXTS: Record<string, string> = {
-  "onpu-segawa": "what is wrong with her.",
   "hazuki-fujiwara": "she's not innocent.",
   hana: "she saved them.",
   "wrong-series": "You're thinking of the wrong series.",
@@ -33,7 +34,6 @@ const TEXTS: Record<string, string> = {
 
 // Looping BGM that starts immediately on each text secret.
 const TEXT_MUSIC: Record<string, string> = {
-  "onpu-segawa": SFX.onpu,
   "hazuki-fujiwara": SFX.hazuki,
   hana: SFX.hana,
   "wrong-series": SFX.wrongSeries,
@@ -63,6 +63,91 @@ function useGoHome() {
     stopAllSecrets();
     navigate({ to: "/" });
   }, [navigate]);
+}
+
+// ─── Onpu (timed reveal synced to BGM) ──────────────────
+// Timeline (per BGM loop, ~145s): black → at 2s a white flash fades out
+// revealing the countdown background while the text floats/glows → at 2:10
+// everything slowly fades back to black until the loop restarts.
+const ONPU_FLASH_AT = 2;
+const ONPU_FADE_AT = 130;
+
+function Onpu() {
+  const { settings } = useSiteSettings();
+  const [phase, setPhase] = useState<"black" | "reveal" | "fadeout">("black");
+  const [flashKey, setFlashKey] = useState(0);
+
+  useEffect(() => {
+    const a = playSecret(SFX.onpu, { loop: true, volume: 0.8 });
+    let raf = 0;
+    let started = false;
+    let prev = "black";
+
+    // Events are driven purely by the audio clock, and only after the BGM
+    // has actually started playing — never on page load alone.
+    const tick = () => {
+      if (started) {
+        const t = a.currentTime;
+        const next =
+          t < ONPU_FLASH_AT ? "black" : t < ONPU_FADE_AT ? "reveal" : "fadeout";
+        if (next !== prev) {
+          prev = next;
+          setPhase(next);
+          if (next === "reveal") setFlashKey((k) => k + 1);
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    const onPlaying = () => {
+      started = true;
+    };
+
+    a.addEventListener("playing", onPlaying);
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      a.removeEventListener("playing", onPlaying);
+      stopSecret(a);
+      stopAllSecrets();
+    };
+  }, []);
+
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden bg-black">
+      {/* Countdown background, revealed after the flash */}
+      <div
+        className="absolute inset-0 transition-opacity ease-out"
+        style={{
+          opacity: phase === "reveal" ? 1 : 0,
+          transitionDuration: phase === "fadeout" ? "12s" : "1.5s",
+        }}
+      >
+        <BackgroundLayer
+          url={settings?.background_url ?? null}
+          kind={settings?.background_kind ?? "image"}
+        />
+        <div className="scanlines pointer-events-none absolute inset-0 opacity-40" />
+        <div className="vignette pointer-events-none absolute inset-0" />
+      </div>
+
+      {/* White flash at the 2s mark; key restarts the animation each loop */}
+      {phase === "reveal" && flashKey > 0 && (
+        <div
+          key={flashKey}
+          className="onpu-flash pointer-events-none absolute inset-0 z-20 bg-white"
+        />
+      )}
+
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6 text-center">
+        <span
+          className={`onpu-text ${phase === "reveal" ? "onpu-text--active" : ""}`}
+        >
+          Why did she lie?
+        </span>
+      </div>
+    </div>
+  );
 }
 
 // ─── Aiko ────────────────────────────────────────────────
@@ -569,6 +654,7 @@ function RevealPage() {
 
   if (slug in TEXTS)
     return <BlackText text={TEXTS[slug]} music={TEXT_MUSIC[slug]} />;
+  if (slug === "onpu-segawa") return <Onpu />;
   if (slug === "doremi") return <Doremi />;
   if (slug === "aiko") return <Aiko />;
   if (slug === "momo") return <Momo />;
