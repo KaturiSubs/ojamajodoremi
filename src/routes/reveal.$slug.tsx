@@ -14,6 +14,8 @@ import fairyVideo from "@/assets/i_ll_be_giving_back_all_my_anger_ive_built_up.m
 import { SFX, ghAsset, gh } from "@/lib/asset-urls";
 import { playSecret, stopAllSecrets, stopSecret } from "@/lib/audio-manager";
 import { Gif } from "@/components/countdown/Gif";
+import { BackgroundLayer } from "@/components/countdown/BackgroundLayer";
+import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/reveal/$slug")({
   ssr: false,
@@ -22,7 +24,6 @@ export const Route = createFileRoute("/reveal/$slug")({
 });
 
 const TEXTS: Record<string, string> = {
-  "onpu-segawa": "what is wrong with her.",
   "hazuki-fujiwara": "she's not innocent.",
   hana: "she saved them.",
   "wrong-series": "You're thinking of the wrong series.",
@@ -33,7 +34,6 @@ const TEXTS: Record<string, string> = {
 
 // Looping BGM that starts immediately on each text secret.
 const TEXT_MUSIC: Record<string, string> = {
-  "onpu-segawa": SFX.onpu,
   "hazuki-fujiwara": SFX.hazuki,
   hana: SFX.hana,
   "wrong-series": SFX.wrongSeries,
