@@ -1,3 +1,5 @@
+import onpuBgmAsset from "@/assets/onpu_bgm.mp3.asset.json";
+
 // GitHub raw asset URLs (KaturiSubs/ojamajodoremi repo)
 const GH = "https://raw.githubusercontent.com/KaturiSubs/ojamajodoremi/main";
 
@@ -35,7 +37,7 @@ export const SFX = {
   hana: ghAsset("The Witchheart's Triumphant Return.wav"),
   doremi: ghAsset("Insanity (Kyoki _ 狂気) - Higurashi no Naku Koro ni Kai _ The Lost Tracks.mp3"),
   hazuki: ghAsset("Re_Zero 2nd Season OST - Disc 2 - 14.『The Sound of Snow』.mp3"),
-  onpu: ghAsset("Re_Zero 2nd Season OST - Disc 1 - 03.『Preface to Misfortune』.mp3"),
+  onpu: onpuBgmAsset.url,
   roxanne: ghAsset("Gallery of Madness (Kiyouki he no Kairou_狂気への回廊) - Higurashi no Naku Koro ni Kai.mp3"),
   wrongSeries: ghAsset("Depressive Paranoia.mp3"),
   lol: ghAsset("For a moment (Pause Theme) - Friday Night Dustin'.mp3"),
