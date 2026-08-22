@@ -654,6 +654,7 @@ function RevealPage() {
 
   if (slug in TEXTS)
     return <BlackText text={TEXTS[slug]} music={TEXT_MUSIC[slug]} />;
+  if (slug === "onpu-segawa") return <Onpu />;
   if (slug === "doremi") return <Doremi />;
   if (slug === "aiko") return <Aiko />;
   if (slug === "momo") return <Momo />;
