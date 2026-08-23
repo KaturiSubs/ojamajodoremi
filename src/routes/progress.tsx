@@ -38,7 +38,7 @@ function ProgressPage() {
       <div className="flex flex-col gap-2 text-sm sm:text-base">
         <Bar emoji="📝" pct={100} />
         <Bar emoji="🗣️" pct={45} />
-        <Bar emoji="🎬" pct={0} />
+        <Bar emoji="🎬" pct={5} />
         <Bar emoji="🇯🇵" pct={0} />
         <Bar emoji="🎨" pct={0} />
       </div>
