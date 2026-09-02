@@ -1,4 +1,5 @@
 import onpuBgmAsset from "@/assets/onpu_bgm.mp3.asset.json";
+import onigaenAsset from "@/assets/onigaen.mp3.asset.json";
 
 // GitHub raw asset URLs (KaturiSubs/ojamajodoremi repo)
 const GH = "https://raw.githubusercontent.com/KaturiSubs/ojamajodoremi/main";

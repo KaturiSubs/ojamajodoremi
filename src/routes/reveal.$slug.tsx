@@ -427,7 +427,7 @@ function Doremi() {
       <img
         src={doremiImg.url}
         alt=""
-        style={{ imageRendering: "pixelated", maxWidth: "70vw", maxHeight: "90vh" }}
+        style={{ imageRendering: "pixelated", width: "min(28vw, 220px)" }}
       />
     </div>
   );
