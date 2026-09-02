@@ -417,7 +417,7 @@ function Fafa() {
 // ─── Doremi ──────────────────────────────────────────────
 function Doremi() {
   useEffect(() => {
-    const a = playSecret(SFX.doremi, { loop: true, volume: 0.8 });
+    const a = playSecret(SFX.doremi, { loop: true, volume: 0.45 });
     return () => {
       stopSecret(a);
       stopAllSecrets();
