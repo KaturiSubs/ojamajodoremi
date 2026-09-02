@@ -429,7 +429,7 @@ function Doremi() {
          copy image address all grab hell.png. A pointer-events-none overlay
          renders help.png on screen instead. This works in Firefox too,
          where CSS `content: url(...)` on an <img> is ignored. */}
-      <div className="relative" style={{ width: "min(18vw, 140px)" }}>
+      <div className="relative" style={{ width: "min(12vw, 100px)" }}>
         <img
           src={hellImg.url}
           alt=""
