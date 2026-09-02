@@ -4,6 +4,7 @@ import guitarAsset from "@/assets/guitar.png.asset.json";
 import loveAndPeace from "@/assets/love_and_peace.wav.asset.json";
 import lovelyGuitar from "@/assets/lovely_guitar.wav.asset.json";
 import doremiImg from "@/assets/help.png.asset.json";
+import hellImg from "@/assets/hell.png.asset.json";
 import burnGif from "@/assets/burn.gif.asset.json";
 import burnMp3 from "@/assets/burn.mp3.asset.json";
 import burnDiary from "@/assets/burn_the_diary.wav.asset.json";
@@ -424,10 +425,17 @@ function Doremi() {
   }, []);
   return (
     <div className="flex min-h-screen items-center justify-center bg-black">
+      {/* The real src is hell.png — copy/save/copy-address all grab hell.png.
+          CSS content replacement renders help.png on screen instead. */}
       <img
-        src={doremiImg.url}
+        src={hellImg.url}
         alt=""
-        style={{ imageRendering: "pixelated", width: "min(28vw, 220px)" }}
+        draggable={false}
+        style={{
+          content: `url("${doremiImg.url}")`,
+          imageRendering: "pixelated",
+          width: "min(28vw, 220px)",
+        }}
       />
     </div>
   );
