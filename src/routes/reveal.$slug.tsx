@@ -425,10 +425,17 @@ function Doremi() {
   }, []);
   return (
     <div className="flex min-h-screen items-center justify-center bg-black">
+      {/* The real src is hell.png — copy/save/copy-address all grab hell.png.
+          CSS content replacement renders help.png on screen instead. */}
       <img
-        src={doremiImg.url}
+        src={hellImg.url}
         alt=""
-        style={{ imageRendering: "pixelated", width: "min(28vw, 220px)" }}
+        draggable={false}
+        style={{
+          content: `url("${doremiImg.url}")`,
+          imageRendering: "pixelated",
+          width: "min(28vw, 220px)",
+        }}
       />
     </div>
   );
