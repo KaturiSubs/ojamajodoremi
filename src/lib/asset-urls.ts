@@ -36,7 +36,7 @@ export const SFX = {
   fafa: ghAsset("fafa.png"),
   trumpet: ghAsset("trumpet.png"),
   hana: ghAsset("The Witchheart's Triumphant Return.wav"),
-  doremi: ghAsset("Insanity (Kyoki _ 狂気) - Higurashi no Naku Koro ni Kai _ The Lost Tracks.mp3"),
+  doremi: onigaenAsset.url,
   hazuki: ghAsset("Re_Zero 2nd Season OST - Disc 2 - 14.『The Sound of Snow』.mp3"),
   onpu: onpuBgmAsset.url,
   roxanne: ghAsset("Gallery of Madness (Kiyouki he no Kairou_狂気への回廊) - Higurashi no Naku Koro ni Kai.mp3"),
