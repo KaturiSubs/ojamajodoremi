@@ -425,18 +425,27 @@ function Doremi() {
   }, []);
   return (
     <div className="flex min-h-screen items-center justify-center bg-black">
-      {/* The real src is hell.png — copy/save/copy-address all grab hell.png.
-          CSS content replacement renders help.png on screen instead. */}
-      <img
-        src={hellImg.url}
-        alt=""
-        draggable={false}
-        style={{
-          content: `url("${doremiImg.url}")`,
-          imageRendering: "pixelated",
-          width: "min(28vw, 220px)",
-        }}
-      />
+      {/* The real <img> src is hell.png, so right-click → save / copy /
+         copy image address all grab hell.png. A pointer-events-none overlay
+         renders help.png on screen instead. This works in Firefox too,
+         where CSS `content: url(...)` on an <img> is ignored. */}
+      <div className="relative" style={{ width: "min(28vw, 220px)" }}>
+        <img
+          src={hellImg.url}
+          alt=""
+          draggable={false}
+          className="block w-full"
+          style={{ imageRendering: "pixelated" }}
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-contain bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url("${doremiImg.url}")`,
+            imageRendering: "pixelated",
+          }}
+        />
+      </div>
     </div>
   );
 }
