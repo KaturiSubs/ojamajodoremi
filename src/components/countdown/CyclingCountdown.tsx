@@ -66,8 +66,10 @@ function Digit({
 
 export function CyclingCountdown({
   customizable = false,
+  blank = false,
 }: {
   customizable?: boolean;
+  blank?: boolean;
 }) {
   const [digits, setDigits] = useState<DigitState[]>(makeInitial);
   const idleRef = useRef<number | null>(null);
@@ -75,6 +77,7 @@ export function CyclingCountdown({
 
   // Looping SFX
   useEffect(() => {
+    if (blank) return;
     const a = new Audio(sfxAsset.url);
     a.loop = true;
     a.volume = 0.15;
@@ -89,10 +92,11 @@ export function CyclingCountdown({
       a.pause();
       a.src = "";
     };
-  }, []);
+  }, [blank]);
 
   // Auto-shuffle non-manual digits
   useEffect(() => {
+    if (blank) return;
     const t = setInterval(() => {
       setDigits((ds) =>
         ds.map((d) =>
@@ -101,7 +105,7 @@ export function CyclingCountdown({
       );
     }, 80);
     return () => clearInterval(t);
-  }, []);
+  }, [blank]);
 
   // Idle reset: after 20s of no manual change, all revert to auto
   const bumpIdle = () => {
@@ -149,6 +153,10 @@ export function CyclingCountdown({
           minWidth: "1.6em",
         }}
       >
+        {blank ? (
+          <span className="invisible">00</span>
+        ) : (
+        <>
         <Digit
           state={digits[start]}
           customizable={customizable}
@@ -159,6 +167,8 @@ export function CyclingCountdown({
           customizable={customizable}
           onChange={(d) => changeDigit(start + 1, d)}
         />
+        </>
+        )}
       </div>
       <div className="mt-2 font-sans text-[10px] font-medium uppercase tracking-[0.4em] text-white/70">
         {label}

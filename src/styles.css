@@ -322,3 +322,15 @@
   100% { opacity: 0; }
 }
 
+
+@font-face {
+  font-family: "Tenna Glyphs";
+  src: url("/__l5e/assets-v1/a1ee9ff0-50c1-436a-88d7-ad8c42c6de1a/tenna_glyphs.ttf") format("truetype");
+  font-display: swap;
+}
+
+@keyframes board-arrow-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+.board-arrow { animation: board-arrow-bob 0.6s steps(2, end) infinite; }

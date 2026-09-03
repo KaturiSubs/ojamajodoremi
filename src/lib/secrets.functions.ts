@@ -26,17 +26,26 @@ const WATER = new Set(
 
 const PROGRESS = new Set(["progress", "update", "when"]);
 
-async function loadForbidden(): Promise<Set<string>> {
+async function loadPhrases(): Promise<{
+  forbidden: Set<string>;
+  board: Set<string>;
+}> {
   const { supabaseAdmin } = await import(
     "@/integrations/supabase/client.server"
   );
   const { data } = await supabaseAdmin
     .from("site_settings")
-    .select("ominous_phrases")
+    .select("ominous_phrases, board_phrases")
     .eq("id", 1)
     .maybeSingle();
-  const list: string[] = (data?.ominous_phrases as string[] | null) ?? [];
-  return new Set(list.map((s) => s.trim().toLowerCase()).filter(Boolean));
+  const norm = (list: string[] | null | undefined) =>
+    new Set(
+      (list ?? []).map((s) => (s ?? "").trim().toLowerCase()).filter(Boolean),
+    );
+  return {
+    forbidden: norm(data?.ominous_phrases as string[] | null),
+    board: norm((data as { board_phrases?: string[] } | null)?.board_phrases),
+  };
 }
 
 
@@ -48,7 +57,10 @@ export const checkSecret = createServerFn({ method: "POST" })
     );
 
     const normalized = data.guess.trim().toLowerCase();
-    const FORBIDDEN = await loadForbidden();
+    const { forbidden: FORBIDDEN, board: BOARD } = await loadPhrases();
+
+    // Board (7B) sequence takes priority after ominous phrases below.
+    const isBoard = BOARD.has(normalized);
 
     // Ominous phrases: log + return "ominous" so client plays the hell-super
     // sound AND triggers the white-fade / spam escalation on the countdown.
@@ -63,6 +75,21 @@ export const checkSecret = createServerFn({ method: "POST" })
         correct: false as const,
         forbidden: true as const,
         ominous: true as const,
+      };
+    }
+
+    if (isBoard) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "board_7b",
+        guess: data.guess,
+        is_correct: true,
+        user_agent: data.userAgent ?? null,
+      });
+      return {
+        correct: true as const,
+        board: true as const,
+        redirect: "/progress",
+        forbidden: false as const,
       };
     }
 

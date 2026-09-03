@@ -68,6 +68,10 @@ export function TypedSecret({
               : undefined,
         },
       });
+      if ("board" in res && res.board) {
+        window.dispatchEvent(new CustomEvent("board-7b"));
+        return;
+      }
       if (res.correct) {
         playSfx(SFX.ominousCorrect, 0.7);
         const dest = res.redirect;

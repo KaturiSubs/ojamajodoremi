@@ -122,6 +122,7 @@ function SettingsTab() {
         music_url: s.music_url,
         default_volume: s.default_volume,
         ominous_phrases: s.ominous_phrases ?? [],
+        board_phrases: (s as any).board_phrases ?? [],
       })
       .eq("id", 1);
     setSaving(false);
@@ -197,6 +198,23 @@ function SettingsTab() {
         <p className="mt-1 font-mono text-xs text-[color:var(--retro-muted)]">
           Typing any of these into the countdown input triggers the ominous
           escalation (hell-super sound + white-flash → /chapters).
+        </p>
+      </div>
+      <div>
+        <Label>7B / side-b phrases (one per line, case-insensitive)</Label>
+        <Textarea
+          rows={5}
+          value={((s as any).board_phrases ?? []).join("\n")}
+          onChange={(e) =>
+            set(
+              "board_phrases" as any,
+              e.target.value.split("\n").map((v) => v.trim()).filter(Boolean) as any,
+            )
+          }
+        />
+        <p className="mt-1 font-mono text-xs text-[color:var(--retro-muted)]">
+          Typing any of these freezes + grayscales the countdown, plays the
+          board dialogue (first time only), then redirects to /progress.
         </p>
       </div>
       <Button onClick={save} disabled={saving} className="font-mono uppercase tracking-widest">
