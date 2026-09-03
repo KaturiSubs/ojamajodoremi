@@ -78,6 +78,21 @@ export const checkSecret = createServerFn({ method: "POST" })
       };
     }
 
+    if (isBoard) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "board_7b",
+        guess: data.guess,
+        is_correct: true,
+        user_agent: data.userAgent ?? null,
+      });
+      return {
+        correct: true as const,
+        board: true as const,
+        redirect: "/progress",
+        forbidden: false as const,
+      };
+    }
+
     // Water secret: hard-coded correct phrases redirect to /reveal/water.
     if (WATER.has(normalized)) {
       await supabaseAdmin.from("secret_submissions").insert({
