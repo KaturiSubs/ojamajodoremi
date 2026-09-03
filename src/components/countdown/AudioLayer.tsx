@@ -111,6 +111,21 @@ export function AudioLayer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
+  // 7B board sequence: hard-stop the BGM.
+  useEffect(() => {
+    const onFreeze = () => {
+      try {
+        sourceRef.current?.stop();
+      } catch {
+        /* ignore */
+      }
+      if (gainRef.current) gainRef.current.gain.value = 0;
+      ctxRef.current?.suspend().catch(() => {});
+    };
+    window.addEventListener("board-freeze", onFreeze);
+    return () => window.removeEventListener("board-freeze", onFreeze);
+  }, []);
+
   // Apply volume
   useEffect(() => {
     if (gainRef.current) gainRef.current.gain.value = volume;
