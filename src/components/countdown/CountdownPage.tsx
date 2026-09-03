@@ -179,7 +179,14 @@ export function CountdownPage() {
   const finished = useMemo(() => (target ? now >= target : false), [target, now]);
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
+    <div
+      className="relative min-h-screen w-full overflow-hidden bg-black text-white"
+      style={
+        boardMode
+          ? { filter: "grayscale(1)", pointerEvents: "none" }
+          : undefined
+      }
+    >
       <BackgroundLayer url={settings?.background_url ?? null} kind={settings?.background_kind ?? "image"} />
       <div className="scanlines pointer-events-none absolute inset-0 z-10 opacity-40" />
       <div className="vignette pointer-events-none absolute inset-0 z-10" />
