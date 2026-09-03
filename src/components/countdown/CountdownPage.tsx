@@ -9,6 +9,11 @@ import { HotspotLayer } from "./HotspotLayer";
 import { KonamiLayer } from "./KonamiLayer";
 import { YouTubeEmbed } from "./YouTubeEmbed";
 import { TypedSecret } from "./TypedSecret";
+import { BoardDialogue } from "./BoardDialogue";
+import boardLaugh from "@/assets/snd_board_mantle_laugh_fast.wav.asset.json";
+import boardOminous from "@/assets/snd_board_ominous.wav.asset.json";
+
+const BOARD_SEEN_KEY = "board_7b_seen";
 
 export function CountdownPage() {
   const { settings, loading } = useSiteSettings();
