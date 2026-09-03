@@ -25,6 +25,76 @@ export function CountdownPage() {
   const [whiteOpacity, setWhiteOpacity] = useState(0);
   const hitsRef = useRef<number[]>([]);
   const navigate = useNavigate();
+  const [boardMode, setBoardMode] = useState(false);
+  const [boardDialogue, setBoardDialogue] = useState(false);
+
+  // 7B / side-b secret: freeze + grayscale the site, then dialogue (first time
+  // only) before redirecting to /progress with the laugh + ominous stingers.
+  useEffect(() => {
+    const finish = () => {
+      try {
+        const laugh = new Audio(boardLaugh.url);
+        laugh.volume = 0.8;
+        (laugh as unknown as { preservesPitch: boolean }).preservesPitch = false;
+        laugh.playbackRate = 1.4;
+        laugh.play().catch(() => {});
+        const om = new Audio(boardOminous.url);
+        om.volume = 0.8;
+        om.play().catch(() => {});
+      } catch {
+        /* ignore */
+      }
+      setTimeout(() => {
+        window.location.href = "/progress";
+      }, 2200);
+    };
+
+    const onBoard = () => {
+      if (boardMode) return;
+      setBoardMode(true);
+      // Kill all audio on the page (BGM, cycling SFX) and freeze the video.
+      document.querySelectorAll("video, audio").forEach((el) => {
+        try {
+          (el as HTMLMediaElement).pause();
+        } catch {
+          /* ignore */
+        }
+      });
+      window.dispatchEvent(new CustomEvent("board-freeze"));
+      const seen =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(BOARD_SEEN_KEY) === "1";
+      if (seen) finish();
+      else setBoardDialogue(true);
+    };
+
+    window.addEventListener("board-7b", onBoard);
+    return () => window.removeEventListener("board-7b", onBoard);
+  }, [boardMode]);
+
+  const onBoardDialogueDone = () => {
+    try {
+      window.localStorage.setItem(BOARD_SEEN_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    setBoardDialogue(false);
+    try {
+      const laugh = new Audio(boardLaugh.url);
+      laugh.volume = 0.8;
+      (laugh as unknown as { preservesPitch: boolean }).preservesPitch = false;
+      laugh.playbackRate = 1.4;
+      laugh.play().catch(() => {});
+      const om = new Audio(boardOminous.url);
+      om.volume = 0.8;
+      om.play().catch(() => {});
+    } catch {
+      /* ignore */
+    }
+    setTimeout(() => {
+      window.location.href = "/progress";
+    }, 2200);
+  };
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 500);
