@@ -57,7 +57,10 @@ export const checkSecret = createServerFn({ method: "POST" })
     );
 
     const normalized = data.guess.trim().toLowerCase();
-    const FORBIDDEN = await loadForbidden();
+    const { forbidden: FORBIDDEN, board: BOARD } = await loadPhrases();
+
+    // Board (7B) sequence takes priority after ominous phrases below.
+    const isBoard = BOARD.has(normalized);
 
     // Ominous phrases: log + return "ominous" so client plays the hell-super
     // sound AND triggers the white-fade / spam escalation on the countdown.
