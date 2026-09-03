@@ -1,0 +1,2 @@
+ALTER TABLE public.site_settings ADD COLUMN IF NOT EXISTS board_phrases text[] NOT NULL DEFAULT ARRAY['7b','chapter 7b','side b','b']::text[];
+UPDATE public.site_settings SET board_phrases = ARRAY['7b','chapter 7b','side b','b']::text[] WHERE id = 1 AND (board_phrases IS NULL OR array_length(board_phrases,1) IS NULL);

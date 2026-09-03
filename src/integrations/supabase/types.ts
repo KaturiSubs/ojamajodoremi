@@ -119,6 +119,7 @@ export type Database = {
         Row: {
           background_kind: string
           background_url: string | null
+          board_phrases: string[]
           countdown_target_at: string | null
           default_volume: number
           id: number
@@ -131,6 +132,7 @@ export type Database = {
         Insert: {
           background_kind?: string
           background_url?: string | null
+          board_phrases?: string[]
           countdown_target_at?: string | null
           default_volume?: number
           id?: number
@@ -143,6 +145,7 @@ export type Database = {
         Update: {
           background_kind?: string
           background_url?: string | null
+          board_phrases?: string[]
           countdown_target_at?: string | null
           default_volume?: number
           id?: number
