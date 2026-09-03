@@ -200,11 +200,13 @@ export function CountdownPage() {
         {loading ? null : finished && settings?.youtube_url ? (
           <YouTubeEmbed url={settings.youtube_url} />
         ) : (
-          <CyclingCountdown customizable={!target} />
+          <CyclingCountdown customizable={!target} blank={boardMode} />
         )}
 
-        <TypedSecret />
+        {!boardMode && <TypedSecret />}
       </main>
+
+      {boardDialogue && <BoardDialogue onDone={onBoardDialogueDone} />}
 
       {/* Ominous white-flash overlay */}
       <div
