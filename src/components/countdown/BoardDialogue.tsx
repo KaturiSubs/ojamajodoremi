@@ -39,6 +39,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
 
   // Typewriter
   useEffect(() => {
+    if (!fontReady) return;
     setShown(0);
     const t = setInterval(() => {
       setShown((s) => {
