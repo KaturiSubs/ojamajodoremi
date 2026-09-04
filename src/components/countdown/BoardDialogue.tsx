@@ -13,12 +13,33 @@ const CHAR_MS = 45;
 export function BoardDialogue({ onDone }: { onDone: () => void }) {
   const [index, setIndex] = useState(0);
   const [shown, setShown] = useState(0);
+  const [fontReady, setFontReady] = useState(false);
   const line = LINES[index] ?? "";
   const complete = shown >= line.length;
-  const typingRef = useRef<HTMLAudioElement | null>(null);
+  const typingRef = useRef<{ stop: () => void } | null>(null);
+
+  // Wait for the Tenna font before rendering text so it never flashes a fallback.
+  useEffect(() => {
+    let alive = true;
+    document.fonts
+      ?.load('24px "Tenna Glyphs"')
+      .then(() => {
+        if (alive) setFontReady(true);
+      })
+      .catch(() => {
+        if (alive) setFontReady(true);
+      });
+    // Safety: never hang the dialogue on font loading.
+    const t = setTimeout(() => alive && setFontReady(true), 1500);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, []);
 
   // Typewriter
   useEffect(() => {
+    if (!fontReady) return;
     setShown(0);
     const t = setInterval(() => {
       setShown((s) => {
@@ -30,24 +51,42 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       });
     }, CHAR_MS);
     return () => clearInterval(t);
-  }, [index, line.length]);
+  }, [index, line.length, fontReady]);
 
-  // Looping text blip while typing; stops the moment the line finishes.
+  // Chained text blips while typing: each blip plays to completion, then the
+  // next starts immediately. When typing finishes, the current blip is allowed
+  // to play out instead of being cut off.
   useEffect(() => {
+    if (!fontReady) return;
     if (complete) {
-      typingRef.current?.pause();
+      typingRef.current?.stop();
+      typingRef.current = null;
       return;
     }
-    const a = new Audio(textMain.url);
-    a.loop = true;
-    a.volume = 0.6;
-    typingRef.current = a;
-    a.play().catch(() => {});
-    return () => {
-      a.pause();
-      a.src = "";
+    let stopped = false;
+    let current: HTMLAudioElement | null = null;
+    const playNext = () => {
+      if (stopped) return;
+      const a = new Audio(textMain.url);
+      a.volume = 0.6;
+      a.playbackRate = 1.3;
+      current = a;
+      a.addEventListener("ended", playNext);
+      a.play().catch(() => {});
     };
-  }, [complete, index]);
+    playNext();
+    typingRef.current = {
+      // Stop chaining new blips, but let the current one finish playing.
+      stop: () => {
+        stopped = true;
+      },
+    };
+    return () => {
+      stopped = true;
+      current?.pause();
+      if (current) current.src = "";
+    };
+  }, [complete, index, fontReady]);
 
   const advance = () => {
     if (!complete) {
@@ -85,10 +124,10 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
         style={{ fontFamily: "'Tenna Glyphs', monospace" }}
       >
         <p className="whitespace-pre-wrap text-xl leading-[1.5] tracking-wide text-white sm:text-2xl">
-          {line.slice(0, shown)}
+          {fontReady ? line.slice(0, shown) : ""}
         </p>
-        {complete && (
-          <span className="absolute bottom-2 right-4 text-white board-arrow">▼</span>
+        {complete && fontReady && (
+          <span className="absolute bottom-1 right-4 text-3xl text-white board-arrow sm:text-4xl">▼</span>
         )}
       </div>
     </div>
