@@ -86,7 +86,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       current?.pause();
       if (current) current.src = "";
     };
-  }, [complete, index]);
+  }, [complete, index, fontReady]);
 
   const advance = () => {
     if (!complete) {
