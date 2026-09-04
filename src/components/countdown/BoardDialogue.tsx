@@ -9,7 +9,8 @@ const LINES = [
 ];
 
 const CHAR_MS = 45;
-const BLIP_RATE = 1.3;
+// Blip is played exactly as-is: native speed/pitch, full length, back-to-back.
+const BLIP_RATE = 1;
 
 // Shared Web Audio context + decoded blip buffer (decoded once, reused).
 let blipCtx: AudioContext | null = null;
@@ -107,7 +108,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       if (cancelled) return;
 
       const gain = ctx.createGain();
-      gain.gain.value = 0.6;
+      gain.gain.value = 1;
       gain.connect(ctx.destination);
 
       const rate = BLIP_RATE;
