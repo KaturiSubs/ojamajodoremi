@@ -57,6 +57,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
   // next starts immediately. When typing finishes, the current blip is allowed
   // to play out instead of being cut off.
   useEffect(() => {
+    if (!fontReady) return;
     if (complete) {
       typingRef.current?.stop();
       typingRef.current = null;
