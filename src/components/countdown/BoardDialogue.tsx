@@ -51,7 +51,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       });
     }, CHAR_MS);
     return () => clearInterval(t);
-  }, [index, line.length]);
+  }, [index, line.length, fontReady]);
 
   // Chained text blips while typing: each blip plays to completion, then the
   // next starts immediately. When typing finishes, the current blip is allowed
