@@ -52,20 +52,37 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
     return () => clearInterval(t);
   }, [index, line.length]);
 
-  // Looping text blip while typing; stops the moment the line finishes.
+  // Chained text blips while typing: each blip plays to completion, then the
+  // next starts immediately. When typing finishes, the current blip is allowed
+  // to play out instead of being cut off.
   useEffect(() => {
     if (complete) {
-      typingRef.current?.pause();
+      typingRef.current?.stop();
+      typingRef.current = null;
       return;
     }
-    const a = new Audio(textMain.url);
-    a.loop = true;
-    a.volume = 0.6;
-    typingRef.current = a;
-    a.play().catch(() => {});
+    let stopped = false;
+    let current: HTMLAudioElement | null = null;
+    const playNext = () => {
+      if (stopped) return;
+      const a = new Audio(textMain.url);
+      a.volume = 0.6;
+      a.playbackRate = 1.3;
+      current = a;
+      a.addEventListener("ended", playNext);
+      a.play().catch(() => {});
+    };
+    playNext();
+    typingRef.current = {
+      // Stop chaining new blips, but let the current one finish playing.
+      stop: () => {
+        stopped = true;
+      },
+    };
     return () => {
-      a.pause();
-      a.src = "";
+      stopped = true;
+      current?.pause();
+      if (current) current.src = "";
     };
   }, [complete, index]);
 
