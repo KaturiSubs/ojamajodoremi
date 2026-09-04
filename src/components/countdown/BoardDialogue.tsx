@@ -122,10 +122,10 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
         style={{ fontFamily: "'Tenna Glyphs', monospace" }}
       >
         <p className="whitespace-pre-wrap text-xl leading-[1.5] tracking-wide text-white sm:text-2xl">
-          {line.slice(0, shown)}
+          {fontReady ? line.slice(0, shown) : ""}
         </p>
-        {complete && (
-          <span className="absolute bottom-2 right-4 text-white board-arrow">▼</span>
+        {complete && fontReady && (
+          <span className="absolute bottom-1 right-4 text-3xl text-white board-arrow sm:text-4xl">▼</span>
         )}
       </div>
     </div>
