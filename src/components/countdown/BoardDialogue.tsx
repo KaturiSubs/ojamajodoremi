@@ -53,40 +53,94 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
     return () => clearInterval(t);
   }, [index, line.length, fontReady]);
 
-  // Chained text blips while typing: each blip plays to completion, then the
-  // next starts immediately. When typing finishes, the current blip is allowed
-  // to play out instead of being cut off.
+  // Chained text blips while typing (Web Audio, sample-accurate): each blip is
+  // scheduled to start exactly when the previous one ends, so every blip plays
+  // in full with no gap. When typing finishes we only cancel blips that have
+  // not started yet — the one currently playing always finishes.
   useEffect(() => {
     if (!fontReady) return;
-    if (complete) {
-      typingRef.current?.stop();
-      typingRef.current = null;
-      return;
-    }
-    let stopped = false;
-    let current: HTMLAudioElement | null = null;
-    const playNext = () => {
-      if (stopped) return;
-      const a = new Audio(textMain.url);
-      a.volume = 0.6;
-      a.playbackRate = 1.3;
-      current = a;
-      a.addEventListener("ended", playNext);
-      a.play().catch(() => {});
+    let cancelled = false;
+    let stoppedChaining = false;
+    let ctx: AudioContext | null = null;
+    const active: { src: AudioBufferSourceNode; startAt: number }[] = [];
+
+    const run = async () => {
+      const buffer = await loadBlipBuffer();
+      if (cancelled || !buffer) return;
+      ctx = getBlipContext();
+      if (!ctx) return;
+      if (ctx.state === "suspended") await ctx.resume().catch(() => {});
+      if (cancelled) return;
+
+      const gain = ctx.createGain();
+      gain.gain.value = 0.6;
+      gain.connect(ctx.destination);
+
+      const rate = BLIP_RATE;
+      const dur = buffer.duration / rate;
+      let nextTime = ctx.currentTime + 0.01;
+
+      const schedule = () => {
+        if (cancelled || stoppedChaining || !ctx) return;
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        src.playbackRate.value = rate;
+        src.connect(gain);
+        const startAt = nextTime;
+        src.start(startAt);
+        active.push({ src, startAt });
+        nextTime = startAt + dur;
+        src.onended = () => {
+          const i = active.findIndex((a) => a.src === src);
+          if (i >= 0) active.splice(i, 1);
+          // Keep exactly one blip queued behind the playing one.
+          if (active.length < 1) schedule();
+        };
+        // Queue the following blip right away so there is never a gap.
+        if (active.length < 2) schedule();
+      };
+      schedule();
     };
-    playNext();
+    run();
+
     typingRef.current = {
-      // Stop chaining new blips, but let the current one finish playing.
+      // Stop chaining; cancel only blips that haven't begun yet.
       stop: () => {
-        stopped = true;
+        stoppedChaining = true;
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        for (const a of active) {
+          if (a.startAt > now + 0.005) {
+            try {
+              a.src.stop();
+            } catch {
+              /* ignore */
+            }
+          }
+        }
       },
     };
+
     return () => {
-      stopped = true;
-      current?.pause();
-      if (current) current.src = "";
+      cancelled = true;
+      stoppedChaining = true;
+      // Unmount / line change: silence everything.
+      for (const a of active) {
+        try {
+          a.src.stop();
+        } catch {
+          /* ignore */
+        }
+      }
     };
-  }, [complete, index, fontReady]);
+  }, [index, fontReady]);
+
+  // When the line finishes typing, stop chaining but let the current blip end.
+  useEffect(() => {
+    if (complete) {
+      typingRef.current?.stop();
+    }
+  }, [complete]);
 
   const advance = () => {
     if (!complete) {
