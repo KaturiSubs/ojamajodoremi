@@ -13,9 +13,29 @@ const CHAR_MS = 45;
 export function BoardDialogue({ onDone }: { onDone: () => void }) {
   const [index, setIndex] = useState(0);
   const [shown, setShown] = useState(0);
+  const [fontReady, setFontReady] = useState(false);
   const line = LINES[index] ?? "";
   const complete = shown >= line.length;
-  const typingRef = useRef<HTMLAudioElement | null>(null);
+  const typingRef = useRef<{ stop: () => void } | null>(null);
+
+  // Wait for the Tenna font before rendering text so it never flashes a fallback.
+  useEffect(() => {
+    let alive = true;
+    document.fonts
+      ?.load('24px "Tenna Glyphs"')
+      .then(() => {
+        if (alive) setFontReady(true);
+      })
+      .catch(() => {
+        if (alive) setFontReady(true);
+      });
+    // Safety: never hang the dialogue on font loading.
+    const t = setTimeout(() => alive && setFontReady(true), 1500);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, []);
 
   // Typewriter
   useEffect(() => {
