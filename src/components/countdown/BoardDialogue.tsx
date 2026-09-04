@@ -9,6 +9,40 @@ const LINES = [
 ];
 
 const CHAR_MS = 45;
+const BLIP_RATE = 1.3;
+
+// Shared Web Audio context + decoded blip buffer (decoded once, reused).
+let blipCtx: AudioContext | null = null;
+let blipBufferPromise: Promise<AudioBuffer | null> | null = null;
+
+function getBlipContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  if (!blipCtx) {
+    const Ctor =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor) return null;
+    blipCtx = new Ctor();
+  }
+  return blipCtx;
+}
+
+function loadBlipBuffer(): Promise<AudioBuffer | null> {
+  if (!blipBufferPromise) {
+    blipBufferPromise = (async () => {
+      const ctx = getBlipContext();
+      if (!ctx) return null;
+      try {
+        const res = await fetch(textMain.url);
+        const data = await res.arrayBuffer();
+        return await ctx.decodeAudioData(data);
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return blipBufferPromise;
+}
 
 export function BoardDialogue({ onDone }: { onDone: () => void }) {
   const [index, setIndex] = useState(0);
