@@ -108,7 +108,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       if (cancelled) return;
 
       const gain = ctx.createGain();
-      gain.gain.value = 0.6;
+      gain.gain.value = 1;
       gain.connect(ctx.destination);
 
       const rate = BLIP_RATE;
