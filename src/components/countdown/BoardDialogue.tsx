@@ -72,7 +72,45 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
     };
   }, []);
 
-  // Typewriter
+  // One blip per typed letter: each character typed schedules one full,
+  // untouched play of the sound byte (original speed/pitch). Blips are
+  // scheduled back-to-back in Web Audio so a playing blip always finishes
+  // completely before the next one starts — never cut off.
+  const blipRef = useRef<{ ctx: AudioContext; buffer: AudioBuffer; nextTime: number } | null>(null);
+
+  useEffect(() => {
+    if (!fontReady) return;
+    let alive = true;
+    loadBlipBuffer().then(async (buffer) => {
+      if (!alive || !buffer) return;
+      const ctx = getBlipContext();
+      if (!ctx) return;
+      if (ctx.state === "suspended") await ctx.resume().catch(() => {});
+      if (!alive) return;
+      if (!blipRef.current) blipRef.current = { ctx, buffer, nextTime: 0 };
+    });
+    return () => {
+      alive = false;
+    };
+  }, [fontReady]);
+
+  const playBlip = () => {
+    const b = blipRef.current;
+    if (!b) return;
+    const { ctx, buffer } = b;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.playbackRate.value = BLIP_RATE;
+    src.connect(ctx.destination);
+    const dur = buffer.duration / BLIP_RATE;
+    const startAt = Math.max(ctx.currentTime + 0.005, b.nextTime);
+    src.start(startAt);
+    b.nextTime = startAt + dur;
+    if (!typingRef.current) typingRef.current = { sources: [] };
+    typingRef.current.sources.push(src);
+  };
+
+  // Typewriter — one blip per letter.
   useEffect(() => {
     if (!fontReady) return;
     setShown(0);
@@ -82,100 +120,26 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
           clearInterval(t);
           return s;
         }
+        playBlip();
         return s + 1;
       });
     }, CHAR_MS);
-    return () => clearInterval(t);
-  }, [index, line.length, fontReady]);
-
-  // Chained text blips while typing (Web Audio, sample-accurate): each blip is
-  // scheduled to start exactly when the previous one ends, so every blip plays
-  // in full with no gap. When typing finishes we only cancel blips that have
-  // not started yet — the one currently playing always finishes.
-  useEffect(() => {
-    if (!fontReady) return;
-    let cancelled = false;
-    let stoppedChaining = false;
-    let ctx: AudioContext | null = null;
-    const active: { src: AudioBufferSourceNode; startAt: number }[] = [];
-
-    const run = async () => {
-      const buffer = await loadBlipBuffer();
-      if (cancelled || !buffer) return;
-      ctx = getBlipContext();
-      if (!ctx) return;
-      if (ctx.state === "suspended") await ctx.resume().catch(() => {});
-      if (cancelled) return;
-
-      const gain = ctx.createGain();
-      gain.gain.value = 1;
-      gain.connect(ctx.destination);
-
-      const rate = BLIP_RATE;
-      const dur = buffer.duration / rate;
-      let nextTime = ctx.currentTime + 0.01;
-
-      const schedule = () => {
-        if (cancelled || stoppedChaining || !ctx) return;
-        const src = ctx.createBufferSource();
-        src.buffer = buffer;
-        src.playbackRate.value = rate;
-        src.connect(gain);
-        const startAt = nextTime;
-        src.start(startAt);
-        active.push({ src, startAt });
-        nextTime = startAt + dur;
-        src.onended = () => {
-          const i = active.findIndex((a) => a.src === src);
-          if (i >= 0) active.splice(i, 1);
-          // Keep exactly one blip queued behind the playing one.
-          if (active.length < 1) schedule();
-        };
-        // Queue the following blip right away so there is never a gap.
-        if (active.length < 2) schedule();
-      };
-      schedule();
-    };
-    run();
-
-    typingRef.current = {
-      // Stop chaining; cancel only blips that haven't begun yet.
-      stop: () => {
-        stoppedChaining = true;
-        if (!ctx) return;
-        const now = ctx.currentTime;
-        for (const a of active) {
-          if (a.startAt > now + 0.005) {
-            try {
-              a.src.stop();
-            } catch {
-              /* ignore */
-            }
+    return () => {
+      clearInterval(t);
+      // Silence any blips still sounding when the line changes / unmounts.
+      if (typingRef.current) {
+        for (const src of typingRef.current.sources) {
+          try {
+            src.stop();
+          } catch {
+            /* ignore */
           }
         }
-      },
-    };
-
-    return () => {
-      cancelled = true;
-      stoppedChaining = true;
-      // Unmount / line change: silence everything.
-      for (const a of active) {
-        try {
-          a.src.stop();
-        } catch {
-          /* ignore */
-        }
+        typingRef.current = null;
       }
     };
-  }, [index, fontReady]);
-
-  // When the line finishes typing, stop chaining but let the current blip end.
-  useEffect(() => {
-    if (complete) {
-      typingRef.current?.stop();
-    }
-  }, [complete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, line.length, fontReady]);
 
   const advance = () => {
     if (!complete) {
