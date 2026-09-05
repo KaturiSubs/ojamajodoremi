@@ -51,7 +51,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
   const [fontReady, setFontReady] = useState(false);
   const line = LINES[index] ?? "";
   const complete = shown >= line.length;
-  const typingRef = useRef<{ stop: () => void } | null>(null);
+  const typingRef = useRef<{ sources: AudioBufferSourceNode[] } | null>(null);
 
   // Wait for the Tenna font before rendering text so it never flashes a fallback.
   useEffect(() => {
@@ -76,7 +76,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
   // untouched play of the sound byte (original speed/pitch). Blips are
   // scheduled back-to-back in Web Audio so a playing blip always finishes
   // completely before the next one starts — never cut off.
-  const blipRef = useRef<{ ctx: AudioContext; buffer: AudioBuffer; nextTime: number } | null>(null);
+  const blipRef = useRef<{ ctx: AudioContext; buffer: AudioBuffer; nextTime: number; lastStart: number } | null>(null);
 
   useEffect(() => {
     if (!fontReady) return;
@@ -87,7 +87,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       if (!ctx) return;
       if (ctx.state === "suspended") await ctx.resume().catch(() => {});
       if (!alive) return;
-      if (!blipRef.current) blipRef.current = { ctx, buffer, nextTime: 0 };
+      if (!blipRef.current) blipRef.current = { ctx, buffer, nextTime: 0, lastStart: 0 };
     });
     return () => {
       alive = false;
@@ -102,10 +102,14 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
     src.buffer = buffer;
     src.playbackRate.value = BLIP_RATE;
     src.connect(ctx.destination);
-    const dur = buffer.duration / BLIP_RATE;
-    const startAt = Math.max(ctx.currentTime + 0.005, b.nextTime);
+    // Chain blips: a playing blip always finishes, but the next one starts
+    // at most ~0.25s after the previous one started, so letters stay snappy.
+    const now = ctx.currentTime;
+    const earliest = Math.max(now + 0.005, b.lastStart + 0.25);
+    const startAt = Math.max(earliest, Math.min(b.nextTime, earliest));
     src.start(startAt);
-    b.nextTime = startAt + dur;
+    b.lastStart = startAt;
+    b.nextTime = startAt + buffer.duration / BLIP_RATE;
     if (!typingRef.current) typingRef.current = { sources: [] };
     typingRef.current.sources.push(src);
   };
@@ -120,8 +124,28 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
           clearInterval(t);
           return s;
         }
+        const next = s + 1;
+        if (next >= line.length) {
+          // Final letter: play its blip, then cancel anything still queued so
+          // the blips end with the typing instead of overstaying.
+          playBlip();
+          const b = blipRef.current;
+          const rec = typingRef.current;
+          if (b && rec) {
+            // Let the final letter's blip play out fully; cancel later ones.
+            for (const src of rec.sources) {
+              try {
+                src.stop(b.lastStart + b.buffer.duration / BLIP_RATE);
+              } catch {
+                /* ignore */
+              }
+            }
+            rec.sources = [];
+          }
+          return next;
+        }
         playBlip();
-        return s + 1;
+        return next;
       });
     }, CHAR_MS);
     return () => {
