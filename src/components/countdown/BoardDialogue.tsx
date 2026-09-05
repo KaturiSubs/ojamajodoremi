@@ -132,9 +132,10 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
           const b = blipRef.current;
           const rec = typingRef.current;
           if (b && rec) {
+            // Let the final letter's blip play out fully; cancel later ones.
             for (const src of rec.sources) {
               try {
-                src.stop(b.lastStart + bufferTail(b.buffer));
+                src.stop(b.lastStart + b.buffer.duration / BLIP_RATE);
               } catch {
                 /* ignore */
               }
