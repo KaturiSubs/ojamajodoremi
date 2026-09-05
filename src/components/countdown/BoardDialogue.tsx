@@ -124,8 +124,27 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
           clearInterval(t);
           return s;
         }
+        const next = s + 1;
+        if (next >= line.length) {
+          // Final letter: play its blip, then cancel anything still queued so
+          // the blips end with the typing instead of overstaying.
+          playBlip();
+          const b = blipRef.current;
+          const rec = typingRef.current;
+          if (b && rec) {
+            for (const src of rec.sources) {
+              try {
+                src.stop(b.lastStart + bufferTail(b.buffer));
+              } catch {
+                /* ignore */
+              }
+            }
+            rec.sources = [];
+          }
+          return next;
+        }
         playBlip();
-        return s + 1;
+        return next;
       });
     }, CHAR_MS);
     return () => {
