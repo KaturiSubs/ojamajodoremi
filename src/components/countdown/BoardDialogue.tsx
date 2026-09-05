@@ -87,7 +87,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       if (!ctx) return;
       if (ctx.state === "suspended") await ctx.resume().catch(() => {});
       if (!alive) return;
-      if (!blipRef.current) blipRef.current = { ctx, buffer, nextTime: 0 };
+      if (!blipRef.current) blipRef.current = { ctx, buffer, nextTime: 0, lastStart: 0 };
     });
     return () => {
       alive = false;
@@ -102,10 +102,14 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
     src.buffer = buffer;
     src.playbackRate.value = BLIP_RATE;
     src.connect(ctx.destination);
-    const dur = buffer.duration / BLIP_RATE;
-    const startAt = Math.max(ctx.currentTime + 0.005, b.nextTime);
+    // Chain blips: a playing blip always finishes, but the next one starts
+    // at most ~0.25s after the previous one started, so letters stay snappy.
+    const now = ctx.currentTime;
+    const earliest = Math.max(now + 0.005, b.lastStart + 0.25);
+    const startAt = Math.max(earliest, Math.min(b.nextTime, earliest));
     src.start(startAt);
-    b.nextTime = startAt + dur;
+    b.lastStart = startAt;
+    b.nextTime = startAt + buffer.duration / BLIP_RATE;
     if (!typingRef.current) typingRef.current = { sources: [] };
     typingRef.current.sources.push(src);
   };
