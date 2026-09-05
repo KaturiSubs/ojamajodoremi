@@ -94,12 +94,16 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
     if (!b) return;
     const src = b.ctx.createBufferSource();
     src.buffer = b.buffer;
-    src.connect(b.ctx.destination);
+    const gain = b.ctx.createGain();
+    gain.gain.value = 0.35;
+    src.connect(gain);
+    gain.connect(b.ctx.destination);
     activeRef.current.add(src);
     src.onended = () => {
       activeRef.current.delete(src);
       try {
         src.disconnect();
+        gain.disconnect();
       } catch {
         /* ignore */
       }
