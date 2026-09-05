@@ -9,8 +9,6 @@ const LINES = [
 ];
 
 const CHAR_MS = 45;
-// Blip is played exactly as-is: native speed/pitch, full length, back-to-back.
-const BLIP_RATE = 1;
 
 // Shared Web Audio context + decoded blip buffer (decoded once, reused).
 let blipCtx: AudioContext | null = null;
@@ -51,7 +49,10 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
   const [fontReady, setFontReady] = useState(false);
   const line = LINES[index] ?? "";
   const complete = shown >= line.length;
-  const typingRef = useRef<{ sources: AudioBufferSourceNode[] } | null>(null);
+
+  // Decoded blip + every source currently sounding.
+  const blipRef = useRef<{ ctx: AudioContext; buffer: AudioBuffer } | null>(null);
+  const activeRef = useRef<Set<AudioBufferSourceNode>>(new Set());
 
   // Wait for the Tenna font before rendering text so it never flashes a fallback.
   useEffect(() => {
@@ -64,7 +65,6 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       .catch(() => {
         if (alive) setFontReady(true);
       });
-    // Safety: never hang the dialogue on font loading.
     const t = setTimeout(() => alive && setFontReady(true), 1500);
     return () => {
       alive = false;
@@ -72,12 +72,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
     };
   }, []);
 
-  // One blip per typed letter: each character typed schedules one full,
-  // untouched play of the sound byte (original speed/pitch). Blips are
-  // scheduled back-to-back in Web Audio so a playing blip always finishes
-  // completely before the next one starts — never cut off.
-  const blipRef = useRef<{ ctx: AudioContext; buffer: AudioBuffer; nextTime: number; lastStart: number } | null>(null);
-
+  // Preload + unlock the blip.
   useEffect(() => {
     if (!fontReady) return;
     let alive = true;
@@ -86,35 +81,45 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
       const ctx = getBlipContext();
       if (!ctx) return;
       if (ctx.state === "suspended") await ctx.resume().catch(() => {});
-      if (!alive) return;
-      if (!blipRef.current) blipRef.current = { ctx, buffer, nextTime: 0, lastStart: 0 };
+      if (alive) blipRef.current = { ctx, buffer };
     });
     return () => {
       alive = false;
     };
   }, [fontReady]);
 
+  // Play the blip right now, as-is. Called the instant a letter appears.
   const playBlip = () => {
     const b = blipRef.current;
     if (!b) return;
-    const { ctx, buffer } = b;
-    const src = ctx.createBufferSource();
-    src.buffer = buffer;
-    src.playbackRate.value = BLIP_RATE;
-    src.connect(ctx.destination);
-    // Chain blips: a playing blip always finishes, but the next one starts
-    // at most ~0.25s after the previous one started, so letters stay snappy.
-    const now = ctx.currentTime;
-    const earliest = Math.max(now + 0.005, b.lastStart + 0.25);
-    const startAt = Math.max(earliest, Math.min(b.nextTime, earliest));
-    src.start(startAt);
-    b.lastStart = startAt;
-    b.nextTime = startAt + buffer.duration / BLIP_RATE;
-    if (!typingRef.current) typingRef.current = { sources: [] };
-    typingRef.current.sources.push(src);
+    const src = b.ctx.createBufferSource();
+    src.buffer = b.buffer;
+    src.connect(b.ctx.destination);
+    activeRef.current.add(src);
+    src.onended = () => {
+      activeRef.current.delete(src);
+      try {
+        src.disconnect();
+      } catch {
+        /* ignore */
+      }
+    };
+    src.start();
   };
 
-  // Typewriter — one blip per letter.
+  // Kill every blip immediately.
+  const stopAllBlips = () => {
+    for (const src of activeRef.current) {
+      try {
+        src.stop();
+      } catch {
+        /* ignore */
+      }
+    }
+    activeRef.current.clear();
+  };
+
+  // Typewriter: letter appears -> blip plays. Nothing else.
   useEffect(() => {
     if (!fontReady) return;
     setShown(0);
@@ -124,49 +129,25 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
           clearInterval(t);
           return s;
         }
-        const next = s + 1;
-        if (next >= line.length) {
-          // Final letter: play its blip, then cancel anything still queued so
-          // the blips end with the typing instead of overstaying.
-          playBlip();
-          const b = blipRef.current;
-          const rec = typingRef.current;
-          if (b && rec) {
-            // Let the final letter's blip play out fully; cancel later ones.
-            for (const src of rec.sources) {
-              try {
-                src.stop(b.lastStart + b.buffer.duration / BLIP_RATE);
-              } catch {
-                /* ignore */
-              }
-            }
-            rec.sources = [];
-          }
-          return next;
-        }
         playBlip();
-        return next;
+        return s + 1;
       });
     }, CHAR_MS);
     return () => {
       clearInterval(t);
-      // Silence any blips still sounding when the line changes / unmounts.
-      if (typingRef.current) {
-        for (const src of typingRef.current.sources) {
-          try {
-            src.stop();
-          } catch {
-            /* ignore */
-          }
-        }
-        typingRef.current = null;
-      }
+      stopAllBlips();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, line.length, fontReady]);
 
+  // Arrow is up -> no more blips, full stop.
+  useEffect(() => {
+    if (complete) stopAllBlips();
+  }, [complete]);
+
   const advance = () => {
     if (!complete) {
+      stopAllBlips();
       setShown(line.length);
       return;
     }
