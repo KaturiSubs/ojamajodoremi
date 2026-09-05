@@ -51,7 +51,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
   const [fontReady, setFontReady] = useState(false);
   const line = LINES[index] ?? "";
   const complete = shown >= line.length;
-  const typingRef = useRef<{ stop: () => void } | null>(null);
+  const typingRef = useRef<{ sources: AudioBufferSourceNode[] } | null>(null);
 
   // Wait for the Tenna font before rendering text so it never flashes a fallback.
   useEffect(() => {
@@ -76,7 +76,7 @@ export function BoardDialogue({ onDone }: { onDone: () => void }) {
   // untouched play of the sound byte (original speed/pitch). Blips are
   // scheduled back-to-back in Web Audio so a playing blip always finishes
   // completely before the next one starts — never cut off.
-  const blipRef = useRef<{ ctx: AudioContext; buffer: AudioBuffer; nextTime: number } | null>(null);
+  const blipRef = useRef<{ ctx: AudioContext; buffer: AudioBuffer; nextTime: number; lastStart: number } | null>(null);
 
   useEffect(() => {
     if (!fontReady) return;
