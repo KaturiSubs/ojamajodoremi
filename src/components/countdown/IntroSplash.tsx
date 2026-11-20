@@ -10,6 +10,7 @@ const LINES = [
   "EVEN MORE LONGER THAN USUAL.",
   "I AM GRATEFUL",
   "FOR YOUR PATIENCE.",
+  "UNTIL THEN...",
 ];
 const FADE = 1000;
 const HOLD = 1500;
