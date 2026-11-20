@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSecretPrompt } from "@/lib/public-content.functions";
+import { getSecretPrompt } from "@/lib/public-content.functions";
 import { checkSecret } from "@/lib/secrets.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -28,12 +29,8 @@ function SecretPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    supabase
-      .from("secrets")
-      .select("prompt")
-      .eq("slug", slug)
-      .maybeSingle()
-      .then(({ data }) => {
+    getSecretPrompt({ data: { slug } })
+      .then((data) => {
         if (!data) setNotFound(true);
         else if (data.prompt) setPrompt(data.prompt);
       });

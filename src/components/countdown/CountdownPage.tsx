@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useSiteSettings } from "@/hooks/use-site-settings";
-import { supabase } from "@/integrations/supabase/client";
+import { getCountdownSecrets } from "@/lib/public-content.functions";
 import { BackgroundLayer } from "./BackgroundLayer";
 import { AudioLayer } from "./AudioLayer";
 import { CyclingCountdown } from "./CyclingCountdown";
@@ -142,37 +142,10 @@ export function CountdownPage() {
   }, [navigate]);
 
   useEffect(() => {
-    supabase
-      .from("hotspots")
-      .select("id, x_pct, y_pct, width_pct, height_pct, secrets(slug)")
-      .then(({ data }) => {
-        if (!data) return;
-        setHotspots(
-          data
-            .filter((h: any) => h.secrets?.slug)
-            .map((h: any) => ({
-              id: h.id,
-              x_pct: Number(h.x_pct),
-              y_pct: Number(h.y_pct),
-              width_pct: Number(h.width_pct),
-              height_pct: Number(h.height_pct),
-              slug: h.secrets.slug,
-            })),
-        );
-      });
-
-    supabase
-      .from("secrets")
-      .select("slug, key_sequence, discovery_type")
-      .eq("discovery_type", "key_sequence")
-      .then(({ data }) => {
-        if (!data) return;
-        setKeySecrets(
-          data
-            .filter((s: any) => s.key_sequence)
-            .map((s: any) => ({ slug: s.slug, key_sequence: s.key_sequence as string })),
-        );
-      });
+    getCountdownSecrets().then(({ hotspots, keySecrets }) => {
+      setHotspots(hotspots);
+      setKeySecrets(keySecrets);
+    });
   }, []);
 
   const target = settings?.countdown_target_at ? new Date(settings.countdown_target_at).getTime() : null;

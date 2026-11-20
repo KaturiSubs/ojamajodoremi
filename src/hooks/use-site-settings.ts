@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getPublicSiteSettings } from "@/lib/public-content.functions";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type SiteSettings = Tables<"site_settings">;
@@ -10,12 +10,8 @@ export function useSiteSettings() {
 
   useEffect(() => {
     let cancelled = false;
-    supabase
-      .from("site_settings")
-      .select("*")
-      .eq("id", 1)
-      .maybeSingle()
-      .then(({ data }) => {
+    getPublicSiteSettings()
+      .then((data) => {
         if (cancelled) return;
         setSettings(data);
         setLoading(false);
