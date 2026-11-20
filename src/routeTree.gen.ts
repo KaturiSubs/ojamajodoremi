@@ -9,24 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProgressRouteImport } from './routes/progress'
-import { Route as ChaptersRouteImport } from './routes/chapters'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SecretSlugRouteImport } from './routes/secret.$slug'
-import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
-import { Route as AuthenticatedDreamRouteImport } from './routes/_authenticated/dream'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ChaptersRouteImport } from './routes/chapters'
+import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedDreamRouteImport } from './routes/_authenticated/dream'
+import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
+import { Route as SecretSlugRouteImport } from './routes/secret.$slug'
 
-const ProgressRoute = ProgressRouteImport.update({
-  id: '/progress',
-  path: '/progress',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChaptersRoute = ChaptersRouteImport.update({
-  id: '/chapters',
-  path: '/chapters',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -34,34 +33,35 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ChaptersRoute = ChaptersRouteImport.update({
+  id: '/chapters',
+  path: '/chapters',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SecretSlugRoute = SecretSlugRouteImport.update({
-  id: '/secret/$slug',
-  path: '/secret/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RevealSlugRoute = RevealSlugRouteImport.update({
-  id: '/reveal/$slug',
-  path: '/reveal/$slug',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDreamRoute = AuthenticatedDreamRouteImport.update({
   id: '/dream',
   path: '/dream',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const RevealSlugRoute = RevealSlugRouteImport.update({
+  id: '/reveal/$slug',
+  path: '/reveal/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecretSlugRoute = SecretSlugRouteImport.update({
+  id: '/secret/$slug',
+  path: '/secret/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -142,25 +142,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/progress': {
-      id: '/progress'
-      path: '/progress'
-      fullPath: '/progress'
-      preLoaderRoute: typeof ProgressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chapters': {
-      id: '/chapters'
-      path: '/chapters'
-      fullPath: '/chapters'
-      preLoaderRoute: typeof ChaptersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -170,26 +156,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/secret/$slug': {
-      id: '/secret/$slug'
-      path: '/secret/$slug'
-      fullPath: '/secret/$slug'
-      preLoaderRoute: typeof SecretSlugRouteImport
+    '/chapters': {
+      id: '/chapters'
+      path: '/chapters'
+      fullPath: '/chapters'
+      preLoaderRoute: typeof ChaptersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reveal/$slug': {
-      id: '/reveal/$slug'
-      path: '/reveal/$slug'
-      fullPath: '/reveal/$slug'
-      preLoaderRoute: typeof RevealSlugRouteImport
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dream': {
       id: '/_authenticated/dream'
@@ -198,12 +191,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDreamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/reveal/$slug': {
+      id: '/reveal/$slug'
+      path: '/reveal/$slug'
+      fullPath: '/reveal/$slug'
+      preLoaderRoute: typeof RevealSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/secret/$slug': {
+      id: '/secret/$slug'
+      path: '/secret/$slug'
+      fullPath: '/secret/$slug'
+      preLoaderRoute: typeof SecretSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
