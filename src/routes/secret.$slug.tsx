@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getSecretPrompt } from "@/lib/public-content.functions";
-import { getSecretPrompt } from "@/lib/public-content.functions";
 import { checkSecret } from "@/lib/secrets.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
