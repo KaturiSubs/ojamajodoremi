@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Explicit unrelated-keyword overrides live in a pure matcher called before configurable secrets, so existing keyword entries cannot send these phrases elsewhere; cover the matcher with focused tests.
+- Keep direct hotspot access admin-only; public countdown discovery uses the existing server projection so clickable areas work without exposing full records.
