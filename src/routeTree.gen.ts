@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChaptersRouteImport } from './routes/chapters'
 import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as UnrelatedRouteImport } from './routes/unrelated'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDreamRouteImport } from './routes/_authenticated/dream'
 import { Route as RevealSlugRouteImport } from './routes/reveal.$slug'
@@ -43,6 +44,11 @@ const ProgressRoute = ProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UnrelatedRoute = UnrelatedRouteImport.update({
+  id: '/unrelated',
+  path: '/unrelated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/chapters': typeof ChaptersRoute
   '/progress': typeof ProgressRoute
+  '/unrelated': typeof UnrelatedRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dream': typeof AuthenticatedDreamRoute
   '/reveal/$slug': typeof RevealSlugRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/chapters': typeof ChaptersRoute
   '/progress': typeof ProgressRoute
+  '/unrelated': typeof UnrelatedRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dream': typeof AuthenticatedDreamRoute
   '/reveal/$slug': typeof RevealSlugRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/chapters': typeof ChaptersRoute
   '/progress': typeof ProgressRoute
+  '/unrelated': typeof UnrelatedRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dream': typeof AuthenticatedDreamRoute
   '/reveal/$slug': typeof RevealSlugRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chapters'
     | '/progress'
+    | '/unrelated'
     | '/admin'
     | '/dream'
     | '/reveal/$slug'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chapters'
     | '/progress'
+    | '/unrelated'
     | '/admin'
     | '/dream'
     | '/reveal/$slug'
@@ -124,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/chapters'
     | '/progress'
+    | '/unrelated'
     | '/_authenticated/admin'
     | '/_authenticated/dream'
     | '/reveal/$slug'
@@ -136,6 +148,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ChaptersRoute: typeof ChaptersRoute
   ProgressRoute: typeof ProgressRoute
+  UnrelatedRoute: typeof UnrelatedRoute
   RevealSlugRoute: typeof RevealSlugRoute
   SecretSlugRoute: typeof SecretSlugRoute
 }
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unrelated': {
+      id: '/unrelated'
+      path: '/unrelated'
+      fullPath: '/unrelated'
+      preLoaderRoute: typeof UnrelatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -227,6 +247,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ChaptersRoute: ChaptersRoute,
   ProgressRoute: ProgressRoute,
+  UnrelatedRoute: UnrelatedRoute,
   RevealSlugRoute: RevealSlugRoute,
   SecretSlugRoute: SecretSlugRoute,
 }

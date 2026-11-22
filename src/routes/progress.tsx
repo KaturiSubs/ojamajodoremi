@@ -4,7 +4,15 @@ import { useState } from "react";
 export const Route = createFileRoute("/progress")({
   ssr: false,
   head: () => ({
-    meta: [{ title: "…" }, { name: "robots", content: "noindex" }],
+    meta: [
+      { title: "Progress — OJAMAJO DOREMI." },
+      { name: "description", content: "The experiment's latest progress." },
+      { property: "og:title", content: "Progress — OJAMAJO DOREMI." },
+      { property: "og:description", content: "The experiment's latest progress." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
+    ],
   }),
   component: ProgressPage,
 });

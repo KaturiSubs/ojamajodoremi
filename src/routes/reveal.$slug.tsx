@@ -20,7 +20,15 @@ import { useSiteSettings } from "@/hooks/use-site-settings";
 
 export const Route = createFileRoute("/reveal/$slug")({
   ssr: false,
-  head: () => ({ meta: [{ title: "…" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({ meta: [
+    { title: "Reveals — OJAMAJO DOREMI." },
+    { name: "description", content: "Fragments of the Ojamajo Doremi experiment." },
+    { property: "og:title", content: "Reveals — OJAMAJO DOREMI." },
+    { property: "og:description", content: "Fragments of the Ojamajo Doremi experiment." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: RevealPage,
 });
 

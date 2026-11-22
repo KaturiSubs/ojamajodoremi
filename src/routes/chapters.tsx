@@ -8,7 +8,12 @@ export const Route = createFileRoute("/chapters")({
   }),
   head: () => ({
     meta: [
-      { title: "//" },
+      { title: "Chapters — OJAMAJO DOREMI." },
+      { name: "description", content: "The chapters of the Ojamajo Doremi experiment." },
+      { property: "og:title", content: "Chapters — OJAMAJO DOREMI." },
+      { property: "og:description", content: "The chapters of the Ojamajo Doremi experiment." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

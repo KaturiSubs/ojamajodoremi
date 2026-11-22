@@ -8,6 +8,15 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  head: () => ({ meta: [
+    { title: "Sign in — OJAMAJO DOREMI." },
+    { name: "description", content: "Sign in to the experiment." },
+    { property: "og:title", content: "Sign in — OJAMAJO DOREMI." },
+    { property: "og:description", content: "Sign in to the experiment." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: AuthPage,
 });
 

@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/dream")({
       { name: "description", content: "A private closing note." },
       { property: "og:title", content: "Dreamwatching" },
       { property: "og:description", content: "A private closing note." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DreamPage,

@@ -10,7 +10,12 @@ export const Route = createFileRoute("/secret/$slug")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "…" },
+      { title: "Secrets — OJAMAJO DOREMI." },
+      { name: "description", content: "What is their secret?" },
+      { property: "og:title", content: "Secrets — OJAMAJO DOREMI." },
+      { property: "og:description", content: "What is their secret?" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

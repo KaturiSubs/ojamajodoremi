@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { unrelatedKeywordRedirect } from "./unrelated-keywords";
 
 const inputSchema = z.object({
   slug: z.string().trim().min(1).max(100).optional(),
@@ -57,6 +58,20 @@ export const checkSecret = createServerFn({ method: "POST" })
     );
 
     const normalized = data.guess.trim().toLowerCase();
+    const unrelatedRedirect = unrelatedKeywordRedirect(normalized);
+    if (unrelatedRedirect) {
+      await supabaseAdmin.from("secret_submissions").insert({
+        secret_slug: "unrelated",
+        guess: data.guess,
+        is_correct: true,
+        user_agent: data.userAgent ?? null,
+      });
+      return {
+        correct: true as const,
+        redirect: unrelatedRedirect,
+        forbidden: false as const,
+      };
+    }
     const { forbidden: FORBIDDEN, board: BOARD } = await loadPhrases();
 
     // Board (7B) sequence takes priority after ominous phrases below.

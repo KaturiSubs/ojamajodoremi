@@ -89,8 +89,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "OJAMAJO DOREMI." },
       { name: "twitter:description", content: "Ojamajo Doremi is about to get a lot more, interesting." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c1c8f0c4-aa37-4791-a4dc-3f617ba3fa12/id-preview-6b29c038--30a49db2-b9e9-4a35-81f6-e271afb0a781.lovable.app-1784790781581.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c1c8f0c4-aa37-4791-a4dc-3f617ba3fa12/id-preview-6b29c038--30a49db2-b9e9-4a35-81f6-e271afb0a781.lovable.app-1784790781581.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

@@ -18,6 +18,15 @@ import {
 } from "@/lib/admin-secrets.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  head: () => ({ meta: [
+    { title: "Admin — OJAMAJO DOREMI." },
+    { name: "description", content: "Manage the experiment." },
+    { property: "og:title", content: "Admin — OJAMAJO DOREMI." },
+    { property: "og:description", content: "Manage the experiment." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+    { name: "robots", content: "noindex" },
+  ] }),
   component: AdminPage,
 });
 
